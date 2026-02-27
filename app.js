@@ -11,19 +11,21 @@ const COLUMNS = {
   dbHost: { label: "DB Host", key: "dbHost", className: "cell-vapp" },
   logicalName: { label: "Logical name", key: "logicalName", className: "cell-name" },
   owner: { label: "Env owner", key: "owner", className: "cell-owner" },
+  usedSpace: { label: "Used Space", key: "usedSpace" },
+  logicalDate: { label: "Logical Date", key: "logicalDate" },
 };
 
-const DEFAULT_COLUMN_ORDER = ["envName", "sprint", "vappId", "dbHost", "logicalName", "owner"];
+const DEFAULT_COLUMN_ORDER = ["envName", "sprint", "vappId", "dbHost", "logicalName", "owner", "usedSpace", "logicalDate"];
 const STORAGE_KEY = "envsync-column-order";
 const STORAGE_KEY_ENVS = "envsync-environments";
 
 const DEFAULT_ENVIRONMENTS = [
-  { envName: "xk9m-2841", logicalName: "env-prod-7f2a", sprint: "Sprint 41", vappId: "vapp-9c3e-b1d8", dbHost: "10.204.88.112", owner: "Jordan Lee" },
-  { envName: "qp2w-7193", logicalName: "env-staging-x4k9", sprint: "Sprint 38", vappId: "vapp-2a7f-e5c0", dbHost: "db-02.internal.net", owner: "Sam Rivera" },
-  { envName: "bn4v-5630", logicalName: "env-qa-m8n2", sprint: "Sprint 42", vappId: "vapp-1d9a-4b6e", dbHost: "192.168.33.77", owner: "Alex Kim" },
-  { envName: "ty8r-1046", logicalName: "env-dev-p3w1", sprint: "Sprint 39", vappId: "vapp-7e2c-8f4a", dbHost: "mysql-svc-05.cluster", owner: "Morgan Tate" },
-  { envName: "hj6s-8925", logicalName: "env-test-q9k4", sprint: "Sprint 41", vappId: "vapp-5b0d-3c7f", dbHost: "pg-primary.region-a", owner: "Riley Chen" },
-  { envName: "wc3p-4178", logicalName: "env-perf-n2m8", sprint: "Sprint 40", vappId: "vapp-8f1a-6e9b", dbHost: "10.55.12.203", owner: "Casey Drew" },
+  { envName: "xk9m-2841", logicalName: "env-prod-7f2a", sprint: "Sprint 41", vappId: "vapp-9c3e-b1d8", dbHost: "10.204.88.112", owner: "Jordan Lee", usedSpace: "128 GB", logicalDate: "2025-02-15" },
+  { envName: "qp2w-7193", logicalName: "env-staging-x4k9", sprint: "Sprint 38", vappId: "vapp-2a7f-e5c0", dbHost: "db-02.internal.net", owner: "Sam Rivera", usedSpace: "64 GB", logicalDate: "2025-01-20" },
+  { envName: "bn4v-5630", logicalName: "env-qa-m8n2", sprint: "Sprint 42", vappId: "vapp-1d9a-4b6e", dbHost: "192.168.33.77", owner: "Alex Kim", usedSpace: "256 GB", logicalDate: "2025-02-01" },
+  { envName: "ty8r-1046", logicalName: "env-dev-p3w1", sprint: "Sprint 39", vappId: "vapp-7e2c-8f4a", dbHost: "mysql-svc-05.cluster", owner: "Morgan Tate", usedSpace: "32 GB", logicalDate: "2025-01-10" },
+  { envName: "hj6s-8925", logicalName: "env-test-q9k4", sprint: "Sprint 41", vappId: "vapp-5b0d-3c7f", dbHost: "pg-primary.region-a", owner: "Riley Chen", usedSpace: "96 GB", logicalDate: "2025-02-10" },
+  { envName: "wc3p-4178", logicalName: "env-perf-n2m8", sprint: "Sprint 40", vappId: "vapp-8f1a-6e9b", dbHost: "10.55.12.203", owner: "Casey Drew", usedSpace: "512 GB", logicalDate: "2025-02-20" },
 ];
 
 function generateId() {
@@ -111,6 +113,8 @@ function getFilteredEnvs() {
       (env.vappId && env.vappId.toLowerCase().includes(q)) ||
       (env.dbHost && env.dbHost.toLowerCase().includes(q)) ||
       (env.db_host && String(env.db_host).toLowerCase().includes(q)) ||
+      (env.usedSpace && String(env.usedSpace).toLowerCase().includes(q)) ||
+      (env.logicalDate && String(env.logicalDate).toLowerCase().includes(q)) ||
       (env.owner && env.owner.toLowerCase().includes(q)) ||
       (env.sprint && env.sprint.toLowerCase().includes(q));
     const matchSprint = !sprint || env.sprint === sprint;
@@ -333,6 +337,8 @@ addForm.addEventListener("submit", (e) => {
   const dbHost = (fd.get("dbHost") || "").trim();
   const logicalName = (fd.get("logicalName") || "").trim();
   const owner = (fd.get("owner") || "").trim();
+  const usedSpace = (fd.get("usedSpace") || "").trim();
+  const logicalDate = (fd.get("logicalDate") || "").trim();
   if (!envName || !sprint || !vappId || !logicalName || !owner) return;
   allEnvs.push({
     id: generateId(),
@@ -342,6 +348,8 @@ addForm.addEventListener("submit", (e) => {
     dbHost: dbHost || "",
     logicalName,
     owner,
+    usedSpace: usedSpace || "",
+    logicalDate: logicalDate || "",
   });
   saveEnvs();
   populateFilters();
