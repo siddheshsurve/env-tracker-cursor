@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EnvSync – Testing Environments Dashboard</title>
+  <link rel="icon" type="image/png" href="favicon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <div class="header-inner">
+        <h1 class="logo">
+          <span class="logo-icon" aria-hidden="true">◇</span>
+          EnvSync
+        </h1>
+        <p class="tagline">Testing environments overview</p>
+      </div>
+    </header>
+
+    <main class="main">
+      <div class="add-env-trigger-wrap">
+        <button type="button" id="btn-add-env" class="btn btn-primary btn-add-env">Add environment</button>
+      </div>
+      <section class="add-entry" id="add-entry-section" hidden>
+        <h2 class="add-entry-title">Add environment</h2>
+        <form id="add-env-form" class="add-form">
+          <div class="add-form-row">
+            <label for="input-envName">Environment name</label>
+            <input type="text" id="input-envName" name="envName" required placeholder="e.g. SIT-01" />
+          </div>
+          <div class="add-form-row">
+            <label for="input-sprint">Sprint</label>
+            <input type="text" id="input-sprint" name="sprint" required placeholder="e.g. Sprint 24" />
+          </div>
+          <div class="add-form-row">
+            <label for="input-vappId">vApp ID</label>
+            <input type="text" id="input-vappId" name="vappId" required placeholder="e.g. Vapp_121" />
+          </div>
+          <div class="add-form-row">
+            <label for="input-dbHost">DB Host</label>
+            <input type="text" id="input-dbHost" name="dbHost" placeholder="e.g. dbhost-sit-01" />
+          </div>
+          <div class="add-form-row">
+            <label for="input-logicalName">Logical name</label>
+            <input type="text" id="input-logicalName" name="logicalName" required placeholder="e.g. sit-payment-core" />
+          </div>
+          <div class="add-form-row">
+            <label for="input-owner">Env owner</label>
+            <input type="text" id="input-owner" name="owner" required placeholder="e.g. Alice Chen" />
+          </div>
+          <div class="add-form-actions">
+            <button type="submit" class="btn btn-primary">Add entry</button>
+            <button type="button" id="btn-cancel-add" class="btn btn-secondary">Cancel</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="toolbar">
+        <div class="toolbar-left">
+          <label class="search-wrap">
+            <span class="search-icon" aria-hidden="true">⌕</span>
+            <input type="search" id="search" class="search-input" placeholder="Search env, owner, vapp_id…" autocomplete="off" />
+          </label>
+          <select id="filter-sprint" class="filter-select" aria-label="Filter by sprint">
+            <option value="">All sprints</option>
+          </select>
+          <select id="filter-owner" class="filter-select" aria-label="Filter by owner">
+            <option value="">All owners</option>
+          </select>
+        </div>
+        <div class="toolbar-right">
+          <span class="env-count" id="env-count">0 environments</span>
+        </div>
+      </section>
+
+      <section class="table-wrap" role="region" aria-label="Environments table">
+        <p class="table-hint">Drag column headers to reorder. Click a header to sort.</p>
+        <div class="table-scroll">
+          <table class="env-table" id="env-table">
+            <thead>
+              <tr id="env-thead-row">
+                <!-- Column headers injected by app.js -->
+              </tr>
+            </thead>
+            <tbody id="env-tbody">
+              <!-- Rows injected by app.js -->
+            </tbody>
+          </table>
+        </div>
+        <p class="empty-state" id="empty-state" hidden>No environments match your filters.</p>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <span>EnvSync Dashboard</span>
+      <span id="last-updated">—</span>
+    </footer>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>
