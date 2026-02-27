@@ -1,6 +1,8 @@
 /* EnvSync Dashboard – Testing Environments */
 
-:root {
+/* Dark theme (default) */
+:root,
+[data-theme="dark"] {
   --bg-page: #0f1419;
   --bg-card: #1a222c;
   --bg-row: #1e2732;
@@ -14,6 +16,19 @@
   --radius: 8px;
   --font-sans: "DM Sans", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
+}
+
+/* Light theme */
+[data-theme="light"] {
+  --bg-page: #f1f5f9;
+  --bg-card: #ffffff;
+  --bg-row: #f8fafc;
+  --bg-row-hover: #e2e8f0;
+  --border: #cbd5e1;
+  --text: #0f172a;
+  --text-muted: #64748b;
+  --accent: #2563eb;
+  --accent-hover: #1d4ed8;
 }
 
 *,
@@ -48,6 +63,33 @@ body {
 .header-inner {
   max-width: 1400px;
   margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.header-left {
+  flex: 0 0 auto;
+}
+
+.header-right {
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+
+.btn-theme-toggle {
+  background: var(--bg-row);
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 0.4rem 0.75rem;
+  font-size: 0.875rem;
+}
+
+.btn-theme-toggle:hover {
+  background: var(--bg-row-hover);
+  border-color: var(--accent);
 }
 
 .logo {

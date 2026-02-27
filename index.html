@@ -4,6 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>EnvSync – Testing Environments Dashboard</title>
+  <script>
+    (function () {
+      var t = localStorage.getItem("envsync-theme") || "dark";
+      document.documentElement.setAttribute("data-theme", t);
+    })();
+  </script>
   <link rel="icon" type="image/png" href="favicon.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -14,11 +20,18 @@
   <div class="app">
     <header class="header">
       <div class="header-inner">
-        <h1 class="logo">
-          <span class="logo-icon" aria-hidden="true">◇</span>
-          EnvSync
-        </h1>
-        <p class="tagline">Testing environments overview</p>
+        <div class="header-left">
+          <h1 class="logo">
+            <span class="logo-icon" aria-hidden="true">◇</span>
+            EnvSync
+          </h1>
+          <p class="tagline">Testing environments overview</p>
+        </div>
+        <div class="header-right">
+          <button type="button" id="theme-toggle" class="btn btn-theme-toggle" title="Switch theme" aria-label="Switch between light and dark theme">
+            <span id="theme-toggle-label">Light</span>
+          </button>
+        </div>
       </div>
     </header>
 

@@ -20,7 +20,28 @@ const STORAGE_KEY = "envsync-column-order";
 const STORAGE_KEY_ENVS = "envsync-environments";
 
 /** Static daemon list for Daemon Status table (first column). */
-const DAEMON_LIST = ["mro", "rqs", "BTLSOR"];
+const DAEMON_LIST = [
+  "mro",
+  "rqs",
+  "BTLSOR",
+  "BTLQUOTE",
+  "TLS1APINV_2_1",
+  "TLS1APINV_1_1",
+  "TLS1APINV_10_1",
+  "AR1PYMRCT",
+  "AR1PYMPOST",
+  "AR1INVRCT",
+  "AR1DDREQCRE",
+  "AR1DDFEDBCK",
+  "AR1BILINTER",
+  "AC1MANAGER",
+  "AR9DDNOTIF",
+  "AR9PYMCAPTRCN",
+  "AR9RFNDCAPT",
+  "AR9SUBKAFKA_1",
+  "AR9UPDPAYMEN",
+  "BL9PUBKAFKA",
+];
 
 const DEFAULT_ENVIRONMENTS = [
   { envName: "xk9m-2841", logicalName: "env-prod-7f2a", sprint: "Sprint 41", vappId: "vapp-9c3e-b1d8", dbHost: "10.204.88.112", owner: "Jordan Lee", usedSpace: "128 GB", logicalDate: "2025-02-15" },
@@ -532,3 +553,24 @@ addForm.addEventListener("submit", (e) => {
 populateFilters();
 render();
 setLastUpdated();
+
+(function initThemeToggle() {
+  const toggle = document.getElementById("theme-toggle");
+  const label = document.getElementById("theme-toggle-label");
+  function updateLabel() {
+    const theme = document.documentElement.getAttribute("data-theme") || "dark";
+    label.textContent = theme === "dark" ? "Light" : "Dark";
+  }
+  updateLabel();
+  if (toggle) {
+    toggle.addEventListener("click", () => {
+      const theme = document.documentElement.getAttribute("data-theme") || "dark";
+      const next = theme === "dark" ? "light" : "dark";
+      document.documentElement.setAttribute("data-theme", next);
+      try {
+        localStorage.setItem("envsync-theme", next);
+      } catch (_) {}
+      updateLabel();
+    });
+  }
+})();
