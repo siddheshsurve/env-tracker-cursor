@@ -19,6 +19,9 @@ const DEFAULT_COLUMN_ORDER = ["envName", "sprint", "vappId", "dbHost", "logicalN
 const STORAGE_KEY = "envsync-column-order";
 const STORAGE_KEY_ENVS = "envsync-environments";
 
+/** Static daemon list for Daemon Status table (first column). */
+const DAEMON_LIST = ["mro", "rqs", "BTLSOR"];
+
 const DEFAULT_ENVIRONMENTS = [
   { envName: "xk9m-2841", logicalName: "env-prod-7f2a", sprint: "Sprint 41", vappId: "vapp-9c3e-b1d8", dbHost: "10.204.88.112", owner: "Jordan Lee", usedSpace: "128 GB", logicalDate: "2025-02-15" },
   { envName: "qp2w-7193", logicalName: "env-staging-x4k9", sprint: "Sprint 38", vappId: "vapp-2a7f-e5c0", dbHost: "db-02.internal.net", owner: "Sam Rivera", usedSpace: "64 GB", logicalDate: "2025-01-20" },
@@ -80,6 +83,8 @@ const filterOwner = document.getElementById("filter-owner");
 const envCount = document.getElementById("env-count");
 const emptyState = document.getElementById("empty-state");
 const table = document.getElementById("env-table");
+const daemonTheadRow = document.getElementById("daemon-thead-row");
+const daemonTbody = document.getElementById("daemon-tbody");
 
 function loadColumnOrder() {
   const allColumnIds = Object.keys(COLUMNS);
@@ -160,6 +165,16 @@ function getEnvValue(env, colKey) {
   return val === undefined || val === null ? "" : String(val);
 }
 
+/** Return CSS class for Used Space cell based on percentage: &lt;50 green, 50-80 yellow, ≥80 red. */
+function getUsedSpaceColorClass(val) {
+  if (val == null || val === "" || val === "—") return "";
+  const num = parseFloat(String(val).replace(/[%\s]/g, ""));
+  if (Number.isNaN(num)) return "";
+  if (num < 50) return "used-space-low";
+  if (num < 80) return "used-space-mid";
+  return "used-space-high";
+}
+
 function getDisplayColumnOrder() {
   // Always include all columns; columnOrder may be from before dbHost was added
   const order = columnOrder.filter((id) => COLUMNS[id]);
@@ -202,7 +217,12 @@ function renderBody() {
           const col = COLUMNS[colId];
           if (!col) return "";
           const val = getEnvValue(env, col.key);
-          const cls = col.className ? ` class="${escapeHtml(col.className)}"` : "";
+          let cls = col.className ? escapeHtml(col.className) : "";
+          if (colId === "usedSpace") {
+            const colorClass = getUsedSpaceColorClass(val);
+            if (colorClass) cls = cls ? cls + " " + colorClass : colorClass;
+          }
+          if (cls) cls = ` class="${cls}"`;
           return `<td${cls}>${escapeHtml(val)}</td>`;
         })
         .join("");
@@ -231,9 +251,37 @@ function initDeleteButtons() {
   });
 }
 
+/** Deterministic Up/Down for daemon status (replace with real check later). */
+function getDaemonStatus(daemon, envId) {
+  const s = (daemon + "-" + (envId || "")).split("").reduce((a, c) => ((a << 5) - a + c.charCodeAt(0)) | 0, 0);
+  return s % 2 === 0 ? "Up" : "Down";
+}
+
+function renderDaemonTable() {
+  if (!daemonTheadRow || !daemonTbody) return;
+  const envs = [...allEnvs];
+  const headerCells =
+    "<th scope=\"col\" class=\"daemon-col-label\">Daemons/ENV</th>" +
+    envs.map((e) => `<th scope="col">${escapeHtml(e.envName || "")}</th>`).join("");
+  daemonTheadRow.innerHTML = headerCells;
+  daemonTbody.innerHTML = DAEMON_LIST.map(
+    (daemon) =>
+      "<tr><td class=\"daemon-name\">" +
+      escapeHtml(daemon) +
+      "</td>" +
+      envs.map((env) => {
+        const status = getDaemonStatus(daemon, env.id);
+        const cls = status === "Up" ? "daemon-up" : "daemon-down";
+        return `<td class="${cls}">${escapeHtml(status)}</td>`;
+      }).join("") +
+      "</tr>"
+  ).join("");
+}
+
 function render() {
   renderHeader();
   renderBody();
+  renderDaemonTable();
 }
 
 function initSort() {

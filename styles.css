@@ -401,6 +401,20 @@ body {
   color: var(--text-muted);
 }
 
+/* Used Space color by percentage: <50 green, 50-80 yellow, ≥80 red */
+.env-table .used-space-low {
+  color: #22c55e;
+  font-weight: 500;
+}
+.env-table .used-space-mid {
+  color: #eab308;
+  font-weight: 500;
+}
+.env-table .used-space-high {
+  color: #ef4444;
+  font-weight: 500;
+}
+
 .env-table .cell-actions {
   width: 1%;
   white-space: nowrap;
@@ -411,6 +425,81 @@ body {
   text-align: center;
   color: var(--text-muted);
   margin: 0;
+}
+
+/* Daemon Status section */
+.daemon-status-wrap {
+  margin-top: 2rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.daemon-status-title {
+  margin: 0;
+  padding: 1rem 1.25rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+  border-bottom: 1px solid var(--border);
+}
+
+.daemon-table-scroll {
+  overflow-x: auto;
+}
+
+.daemon-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9375rem;
+}
+
+.daemon-table th,
+.daemon-table td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.daemon-table th {
+  background: var(--bg-row);
+  color: var(--text-muted);
+  font-weight: 600;
+  font-size: 0.8125rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.daemon-table .daemon-col-label {
+  min-width: 120px;
+}
+
+.daemon-table tbody tr {
+  background: var(--bg-row);
+}
+
+.daemon-table tbody tr:hover {
+  background: var(--bg-row-hover);
+}
+
+.daemon-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.daemon-table .daemon-name {
+  font-weight: 500;
+  color: var(--text);
+}
+
+.daemon-table .daemon-up {
+  color: #22c55e;
+  font-weight: 500;
+}
+
+.daemon-table .daemon-down {
+  color: #ef4444;
+  font-weight: 500;
 }
 
 /* Footer */
