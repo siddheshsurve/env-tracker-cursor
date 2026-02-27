@@ -41,9 +41,11 @@ function loadEnvs() {
       if (Array.isArray(parsed) && parsed.length > 0) {
         return parsed.map((e) => {
           const env = { ...e, id: e.id || generateId() };
-          // Normalize snake_case to camelCase so DB Host displays (e.g. db_host -> dbHost)
+          // Normalize snake_case to camelCase for display
           if (e.db_host !== undefined && e.db_host !== null && env.dbHost === undefined) env.dbHost = e.db_host;
-          // Ensure every column key exists so new fields (e.g. dbHost) display
+          if (e.used_space !== undefined && e.used_space !== null && env.usedSpace === undefined) env.usedSpace = e.used_space;
+          if (e.logical_date !== undefined && e.logical_date !== null && env.logicalDate === undefined) env.logicalDate = e.logical_date;
+          // Ensure every column key exists so new fields display
           for (const key of defaultKeys) {
             if (env[key] === undefined) env[key] = "";
           }
@@ -60,6 +62,9 @@ function saveEnvs() {
     localStorage.setItem(STORAGE_KEY_ENVS, JSON.stringify(allEnvs));
   } catch (_) {}
 }
+
+/** Base URL for API (empty when served from same Node server). */
+const API_BASE = "";
 
 let allEnvs = loadEnvs();
 let sortKey = "envName";
@@ -137,12 +142,22 @@ function escapeHtml(s) {
   return div.innerHTML;
 }
 
-/** Get value for a column from env, supporting both camelCase and snake_case (e.g. dbHost / db_host). */
+/** Get value for a column from env, supporting both camelCase and snake_case. */
 function getEnvValue(env, colKey) {
   const val = env[colKey];
-  if (val !== undefined && val !== null && val !== "") return val;
-  if (colKey === "dbHost" && (env.db_host !== undefined && env.db_host !== null)) return env.db_host;
-  return val === undefined || val === null ? "" : val;
+  if (val !== undefined && val !== null && val !== "") return String(val);
+  if (colKey === "dbHost" && (env.db_host !== undefined && env.db_host !== null)) return String(env.db_host);
+  if (colKey === "usedSpace") {
+    const u = env.used_space;
+    if (u !== undefined && u !== null && u !== "") return String(u);
+    return "—"; // Fetched from Unix; show placeholder when empty
+  }
+  if (colKey === "logicalDate") {
+    const d = env.logical_date;
+    if (d !== undefined && d !== null && d !== "") return String(d);
+    return "—";
+  }
+  return val === undefined || val === null ? "" : String(val);
 }
 
 function getDisplayColumnOrder() {
@@ -328,6 +343,115 @@ function hideAddForm() {
 btnAddEnv.addEventListener("click", showAddForm);
 btnCancelAdd.addEventListener("click", hideAddForm);
 
+async function fetchUsedSpaceForHost(host) {
+  let res;
+  try {
+    res = await fetch(API_BASE + "/api/used-space", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ host: host || "" }),
+    });
+  } catch (e) {
+    return Promise.reject(new Error("API unreachable. Start server with: npm start"));
+  }
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const msg = data.error && typeof data.error === "string" ? data.error : "Request failed";
+    return Promise.reject(new Error(msg));
+  }
+  const raw = data.usedSpace;
+  if (raw !== undefined && raw !== null) return String(raw).trim() || "—";
+  return "—";
+}
+
+function refreshUsedSpaceForAll() {
+  const btn = document.getElementById("btn-refresh-used-space");
+  if (!btn || btn.disabled) return;
+  const originalText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = "Refreshing…";
+
+  const envs = [...allEnvs];
+  Promise.all(
+    envs.map((env) => {
+      const host = (env.envName || "").trim();
+      if (!host) return Promise.resolve();
+      return fetchUsedSpaceForHost(host)
+        .then((usedSpace) => {
+          env.usedSpace = usedSpace != null && usedSpace !== "" ? String(usedSpace) : "—";
+        })
+        .catch((err) => {
+          const msg = err && err.message ? String(err.message) : "Error";
+          env.usedSpace = msg.length > 50 ? msg.slice(0, 47) + "…" : msg;
+          console.error("Used space for " + host + ":", err.message);
+        });
+    })
+  ).finally(() => {
+    btn.disabled = false;
+    btn.textContent = originalText;
+    saveEnvs();
+    render();
+    setLastUpdated();
+  });
+}
+
+async function fetchLogicalDateForHost(host) {
+  let res;
+  try {
+    res = await fetch(API_BASE + "/api/logical-date", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ host: host || "" }),
+    });
+  } catch (e) {
+    return Promise.reject(new Error("API unreachable. Start server with: npm start"));
+  }
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const msg = data.error && typeof data.error === "string" ? data.error : "Request failed";
+    return Promise.reject(new Error(msg));
+  }
+  const raw = data.logicalDate;
+  if (raw !== undefined && raw !== null) return String(raw).trim() || "—";
+  return "—";
+}
+
+function refreshLogicalDateForAll() {
+  const btn = document.getElementById("btn-refresh-logical-date");
+  if (!btn || btn.disabled) return;
+  const originalText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = "Refreshing…";
+
+  const envs = [...allEnvs];
+  Promise.all(
+    envs.map((env) => {
+      const host = (env.envName || "").trim();
+      if (!host) return Promise.resolve();
+      return fetchLogicalDateForHost(host)
+        .then((logicalDate) => {
+          env.logicalDate = logicalDate != null && logicalDate !== "" ? String(logicalDate) : "—";
+        })
+        .catch((err) => {
+          const msg = err && err.message ? String(err.message) : "Error";
+          env.logicalDate = msg.length > 50 ? msg.slice(0, 47) + "…" : msg;
+          console.error("Logical date for " + host + ":", err.message);
+        });
+    })
+  ).finally(() => {
+    btn.disabled = false;
+    btn.textContent = originalText;
+    saveEnvs();
+    render();
+    setLastUpdated();
+  });
+}
+
+const btnRefreshUsedSpace = document.getElementById("btn-refresh-used-space");
+if (btnRefreshUsedSpace) btnRefreshUsedSpace.addEventListener("click", refreshUsedSpaceForAll);
+const btnRefreshLogicalDate = document.getElementById("btn-refresh-logical-date");
+if (btnRefreshLogicalDate) btnRefreshLogicalDate.addEventListener("click", refreshLogicalDateForAll);
+
 addForm.addEventListener("submit", (e) => {
   e.preventDefault();
   const fd = new FormData(addForm);
@@ -337,8 +461,6 @@ addForm.addEventListener("submit", (e) => {
   const dbHost = (fd.get("dbHost") || "").trim();
   const logicalName = (fd.get("logicalName") || "").trim();
   const owner = (fd.get("owner") || "").trim();
-  const usedSpace = (fd.get("usedSpace") || "").trim();
-  const logicalDate = (fd.get("logicalDate") || "").trim();
   if (!envName || !sprint || !vappId || !logicalName || !owner) return;
   allEnvs.push({
     id: generateId(),
@@ -348,8 +470,8 @@ addForm.addEventListener("submit", (e) => {
     dbHost: dbHost || "",
     logicalName,
     owner,
-    usedSpace: usedSpace || "",
-    logicalDate: logicalDate || "",
+    usedSpace: "",
+    logicalDate: "",
   });
   saveEnvs();
   populateFilters();

@@ -53,14 +53,6 @@
             <label for="input-owner">Env owner</label>
             <input type="text" id="input-owner" name="owner" required placeholder="e.g. Alice Chen" />
           </div>
-          <div class="add-form-row">
-            <label for="input-usedSpace">Used Space</label>
-            <input type="text" id="input-usedSpace" name="usedSpace" placeholder="e.g. 128 GB" />
-          </div>
-          <div class="add-form-row">
-            <label for="input-logicalDate">Logical Date</label>
-            <input type="text" id="input-logicalDate" name="logicalDate" placeholder="e.g. 2025-02-15" />
-          </div>
           <div class="add-form-actions">
             <button type="submit" class="btn btn-primary">Add entry</button>
             <button type="button" id="btn-cancel-add" class="btn btn-secondary">Cancel</button>
@@ -82,6 +74,8 @@
           </select>
         </div>
         <div class="toolbar-right">
+          <button type="button" id="btn-refresh-used-space" class="btn btn-secondary btn-refresh-space" title="Fetch used space from each Unix host (env name = host)">Refresh used space</button>
+          <button type="button" id="btn-refresh-logical-date" class="btn btn-secondary btn-refresh-space" title="Fetch logical date from each Unix host via sqla">Refresh logical date</button>
           <span class="env-count" id="env-count">0 environments</span>
         </div>
       </section>

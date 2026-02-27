@@ -1,47 +1,60 @@
 # EnvSync – Testing Environments Dashboard
 
-A simple dashboard to view testing environment details: environment list, sprint, vApp ID, logical name, and environment owner.
+A dashboard to view testing environment details: environment list, sprint, vApp ID, DB Host, logical name, env owner, **used space** (from Unix hosts), and logical date.
 
 ## What it shows
 
-- **Environment** – Short name (e.g. SIT-01, UAT-01)
-- **Logical name** – Full logical identifier
-- **Sprint** – Associated sprint
-- **vApp ID** – vApp identifier
-- **Env owner** – Owner of the environment
+- **Environment** – Short name (used as SSH host for used space)
+- **Sprint**, **vApp ID**, **DB Host**, **Logical name**, **Env owner**
+- **Used Space** – Fetched from each Unix host via SSH (command: `df -h . | awk 'NR==2 {print $5}'`)
+- **Logical Date**
 
-## Run locally
+## Run with API (used space fetch)
 
-1. Open the project folder and serve the files over HTTP (required for correct loading of assets).
-
-   **Option A – Python 3**
+1. **Install dependencies**
    ```bash
-   cd C:\Users\surves\Documents\env-sync
-   python -m http.server 8080
+   npm install
    ```
 
-   **Option B – Node (npx)**
+2. **Configure SSH credentials**
    ```bash
-   npx serve -p 8080
+   cp .env.example .env
+   # Edit .env and set:
+   # SSH_USER=abpwrk1
+   # SSH_PASSWORD=your_password
    ```
 
-2. In a browser go to: **http://localhost:8080**
+3. **Start the server** (serves the app and the API)
+   ```bash
+   npm start
+   ```
+
+4. Open **http://localhost:3000**
+
+5. Click **"Refresh used space"** to SSH to each environment (host = environment name), run the `df` command, and fill the Used Space column.
+
+## Run without API (static only)
+
+If you only want to view/add/edit envs without fetching used space:
+
+- Serve the folder with any static server (e.g. `npx serve -p 8080` or `python -m http.server 8080`) and open the app. The "Refresh used space" button will fail unless the API is running at the same origin.
+
+## Used space logic
+
+- Each row’s **environment name** is used as the **SSH host** (e.g. `illnqw-7937`).
+- The server connects with the credentials from `.env` (username `SSH_USER`, password `SSH_PASSWORD`).
+- It runs: `df -h . | awk 'NR==2 {print $5}'` and returns the value (e.g. `45%`).
+- The dashboard calls the API for every env when you click **"Refresh used space"** and updates the Used Space column.
 
 ## Features
 
-- **Search** – Filter by env name, logical name, vApp ID, owner, or sprint
+- **Search** – Filter by env name, logical name, vApp ID, DB Host, owner, sprint, used space, logical date
 - **Filters** – Dropdowns for sprint and owner
-- **Sort** – Click column headers to sort (Logical name, Environment, Sprint, vApp ID, Owner)
-- **Count** – Displays how many environments match the current filters
+- **Sort** – Click column headers to sort
+- **Add / Delete** – Add environment (with optional Used Space, Logical Date) and delete rows
+- **Drag columns** – Reorder columns; order is saved in localStorage
+- **Refresh used space** – Fetches live used space from each Unix host via the API
 
 ## Using your own data
 
-Edit `app.js` and replace the `ENVIRONMENTS` array with your data. Each item should have:
-
-- `envName` – Environment name
-- `logicalName` – Logical name
-- `sprint` – Sprint (e.g. "Sprint 24")
-- `vappId` – vApp ID
-- `owner` – Environment owner
-
-You can later load this from an API by fetching JSON and assigning to `allEnvs`, then calling `populateFilters()` and `render()`.
+Edit `app.js`: the `DEFAULT_ENVIRONMENTS` array defines initial rows. Each item can have: `envName`, `sprint`, `vappId`, `dbHost`, `logicalName`, `owner`, `usedSpace`, `logicalDate`. Data is persisted in the browser’s localStorage.
