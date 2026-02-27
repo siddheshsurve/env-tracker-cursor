@@ -478,13 +478,21 @@ body {
   overflow: hidden;
 }
 
+.daemon-status-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+}
+
 .daemon-status-title {
   margin: 0;
-  padding: 1rem 1.25rem;
   font-size: 1rem;
   font-weight: 600;
   color: var(--text);
-  border-bottom: 1px solid var(--border);
 }
 
 .daemon-table-scroll {
@@ -542,6 +550,11 @@ body {
 .daemon-table .daemon-down {
   color: #ef4444;
   font-weight: 500;
+}
+
+.daemon-table .daemon-error {
+  color: var(--text-muted);
+  font-size: 0.875rem;
 }
 
 /* Footer */

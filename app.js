@@ -95,6 +95,8 @@ let sortKey = "envName";
 let sortDir = "asc";
 let columnOrder = loadColumnOrder();
 let wasDragging = false;
+/** Daemon status per env: daemonStatusMap[envId][daemon] = "Up" | "Down" */
+let daemonStatusMap = {};
 
 const theadRow = document.getElementById("env-thead-row");
 const tbody = document.getElementById("env-tbody");
@@ -272,10 +274,8 @@ function initDeleteButtons() {
   });
 }
 
-/** Deterministic Up/Down for daemon status (replace with real check later). */
-function getDaemonStatus(daemon, envId) {
-  const s = (daemon + "-" + (envId || "")).split("").reduce((a, c) => ((a << 5) - a + c.charCodeAt(0)) | 0, 0);
-  return s % 2 === 0 ? "Up" : "Down";
+function getStoredDaemonStatus(envId, daemon) {
+  return (daemonStatusMap[envId] && daemonStatusMap[envId][daemon]) || null;
 }
 
 function renderDaemonTable() {
@@ -291,13 +291,70 @@ function renderDaemonTable() {
       escapeHtml(daemon) +
       "</td>" +
       envs.map((env) => {
-        const status = getDaemonStatus(daemon, env.id);
-        const cls = status === "Up" ? "daemon-up" : "daemon-down";
-        return `<td class="${cls}">${escapeHtml(status)}</td>`;
+        const status = getStoredDaemonStatus(env.id, daemon);
+        const display = status != null ? status : "—";
+        let cls = display === "Up" ? "daemon-up" : display === "Down" ? "daemon-down" : "";
+        if (display === "Error") cls = "daemon-error";
+        return `<td class="${cls}">${escapeHtml(display)}</td>`;
       }).join("") +
       "</tr>"
   ).join("");
 }
+
+async function fetchDaemonStatusForHost(host, daemon) {
+  let res;
+  try {
+    res = await fetch(API_BASE + "/api/daemon-status", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ host: host || "", daemon: daemon || "" }),
+    });
+  } catch (e) {
+    return Promise.reject(new Error("API unreachable. Start server with: npm start"));
+  }
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const msg = data.error && typeof data.error === "string" ? data.error : "Request failed";
+    return Promise.reject(new Error(msg));
+  }
+  const status = data.status;
+  return status === "Up" || status === "Down" ? status : "Down";
+}
+
+function refreshDaemonStatusForAll() {
+  const btn = document.getElementById("btn-refresh-daemon-status");
+  if (!btn || btn.disabled) return;
+  const originalText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = "Refreshing…";
+
+  const envs = [...allEnvs];
+  const tasks = [];
+  envs.forEach((env) => {
+    if (!daemonStatusMap[env.id]) daemonStatusMap[env.id] = {};
+    const host = (env.envName || "").trim();
+    if (!host) return;
+    DAEMON_LIST.forEach((daemon) => {
+      tasks.push(
+        fetchDaemonStatusForHost(host, daemon)
+          .then((status) => {
+            daemonStatusMap[env.id][daemon] = status;
+          })
+          .catch(() => {
+            daemonStatusMap[env.id][daemon] = "Error";
+          })
+      );
+    });
+  });
+  Promise.all(tasks).finally(() => {
+    btn.disabled = false;
+    btn.textContent = originalText;
+    renderDaemonTable();
+  });
+}
+
+const btnRefreshDaemonStatus = document.getElementById("btn-refresh-daemon-status");
+if (btnRefreshDaemonStatus) btnRefreshDaemonStatus.addEventListener("click", refreshDaemonStatusForAll);
 
 function render() {
   renderHeader();
