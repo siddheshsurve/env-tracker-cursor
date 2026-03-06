@@ -542,11 +542,11 @@ body {
   color: var(--text);
 }
 
-/* Status circles: green = Up, red = Down */
+/* Status circles: green = Up, red = Down (2x size) */
 .daemon-table .status-dot {
   display: inline-block;
-  width: 10px;
-  height: 10px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
   vertical-align: middle;
 }
