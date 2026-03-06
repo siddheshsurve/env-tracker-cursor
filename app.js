@@ -293,9 +293,16 @@ function renderDaemonTable() {
       envs.map((env) => {
         const status = getStoredDaemonStatus(env.id, daemon);
         const display = status != null ? status : "—";
-        let cls = display === "Up" ? "daemon-up" : display === "Down" ? "daemon-down" : "";
-        if (display === "Error") cls = "daemon-error";
-        return `<td class="${cls}">${escapeHtml(display)}</td>`;
+        let cellContent;
+        if (display === "Up") {
+          cellContent = '<span class="status-dot status-up" title="Up" aria-label="Up"></span>';
+        } else if (display === "Down") {
+          cellContent = '<span class="status-dot status-down" title="Down" aria-label="Down"></span>';
+        } else {
+          const cls = display === "Error" ? "daemon-error" : "";
+          cellContent = `<span class="${cls}">${escapeHtml(display)}</span>`;
+        }
+        return `<td>${cellContent}</td>`;
       }).join("") +
       "</tr>"
   ).join("");

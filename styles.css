@@ -542,14 +542,21 @@ body {
   color: var(--text);
 }
 
-.daemon-table .daemon-up {
-  color: #22c55e;
-  font-weight: 500;
+/* Status circles: green = Up, red = Down */
+.daemon-table .status-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  vertical-align: middle;
 }
 
-.daemon-table .daemon-down {
-  color: #ef4444;
-  font-weight: 500;
+.daemon-table .status-dot.status-up {
+  background: #22c55e;
+}
+
+.daemon-table .status-dot.status-down {
+  background: #ef4444;
 }
 
 .daemon-table .daemon-error {
