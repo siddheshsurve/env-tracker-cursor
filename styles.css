@@ -542,7 +542,7 @@ body {
   color: var(--text);
 }
 
-/* Status circles: green = Up, red = Down (2x size) */
+/* Status circles: green = Up, red = Down (2x size, bulb glow) */
 .daemon-table .status-dot {
   display: inline-block;
   width: 20px;
@@ -553,10 +553,12 @@ body {
 
 .daemon-table .status-dot.status-up {
   background: #22c55e;
+  box-shadow: 0 0 6px 2px rgba(34, 197, 94, 0.4), 0 0 10px 4px rgba(34, 197, 94, 0.2);
 }
 
 .daemon-table .status-dot.status-down {
   background: #ef4444;
+  box-shadow: 0 0 6px 2px rgba(239, 68, 68, 0.4), 0 0 10px 4px rgba(239, 68, 68, 0.2);
 }
 
 .daemon-table .daemon-error {
