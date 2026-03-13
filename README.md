@@ -5,7 +5,7 @@ A dashboard to view testing environment details: environment list, sprint, vApp 
 ## What it shows
 
 - **Environment** – Short name (used as SSH host for used space)
-- **Sprint**, **vApp ID**, **DB Host**, **Logical name**, **Env owner**
+- **Sprint**, **vApp ID**, **DB Host**, **ANM Connectivity**, **Logical name**, **Env owner**
 - **Used Space** – Fetched from each Unix host via SSH (command: `df -h . | awk 'NR==2 {print $5}'`)
 - **Logical Date**
 

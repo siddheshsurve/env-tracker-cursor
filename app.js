@@ -9,13 +9,14 @@ const COLUMNS = {
   sprint: { label: "Sprint", key: "sprint" },
   vappId: { label: "vApp ID", key: "vappId", className: "cell-vapp" },
   dbHost: { label: "DB Host", key: "dbHost", className: "cell-vapp" },
+  anmConnectivity: { label: "ANM Connectivity", key: "anmConnectivity", className: "cell-vapp" },
   logicalName: { label: "Logical name", key: "logicalName", className: "cell-name" },
   owner: { label: "Env owner", key: "owner", className: "cell-owner" },
   usedSpace: { label: "Used Space", key: "usedSpace" },
   logicalDate: { label: "Logical Date", key: "logicalDate" },
 };
 
-const DEFAULT_COLUMN_ORDER = ["envName", "sprint", "vappId", "dbHost", "logicalName", "owner", "usedSpace", "logicalDate"];
+const DEFAULT_COLUMN_ORDER = ["envName", "sprint", "vappId", "dbHost", "anmConnectivity", "logicalName", "owner", "usedSpace", "logicalDate"];
 const STORAGE_KEY = "envsync-column-order";
 const STORAGE_KEY_ENVS = "envsync-environments";
 
@@ -44,12 +45,12 @@ const DAEMON_LIST = [
 ];
 
 const DEFAULT_ENVIRONMENTS = [
-  { envName: "xk9m-2841", logicalName: "env-prod-7f2a", sprint: "Sprint 41", vappId: "vapp-9c3e-b1d8", dbHost: "10.204.88.112", owner: "Jordan Lee", usedSpace: "128 GB", logicalDate: "2025-02-15" },
-  { envName: "qp2w-7193", logicalName: "env-staging-x4k9", sprint: "Sprint 38", vappId: "vapp-2a7f-e5c0", dbHost: "db-02.internal.net", owner: "Sam Rivera", usedSpace: "64 GB", logicalDate: "2025-01-20" },
-  { envName: "bn4v-5630", logicalName: "env-qa-m8n2", sprint: "Sprint 42", vappId: "vapp-1d9a-4b6e", dbHost: "192.168.33.77", owner: "Alex Kim", usedSpace: "256 GB", logicalDate: "2025-02-01" },
-  { envName: "ty8r-1046", logicalName: "env-dev-p3w1", sprint: "Sprint 39", vappId: "vapp-7e2c-8f4a", dbHost: "mysql-svc-05.cluster", owner: "Morgan Tate", usedSpace: "32 GB", logicalDate: "2025-01-10" },
-  { envName: "hj6s-8925", logicalName: "env-test-q9k4", sprint: "Sprint 41", vappId: "vapp-5b0d-3c7f", dbHost: "pg-primary.region-a", owner: "Riley Chen", usedSpace: "96 GB", logicalDate: "2025-02-10" },
-  { envName: "wc3p-4178", logicalName: "env-perf-n2m8", sprint: "Sprint 40", vappId: "vapp-8f1a-6e9b", dbHost: "10.55.12.203", owner: "Casey Drew", usedSpace: "512 GB", logicalDate: "2025-02-20" },
+  { envName: "xk9m-2841", logicalName: "env-prod-7f2a", sprint: "Sprint 41", vappId: "vapp-9c3e-b1d8", dbHost: "10.204.88.112", anmConnectivity: "", owner: "Jordan Lee", usedSpace: "128 GB", logicalDate: "2025-02-15" },
+  { envName: "qp2w-7193", logicalName: "env-staging-x4k9", sprint: "Sprint 38", vappId: "vapp-2a7f-e5c0", dbHost: "db-02.internal.net", anmConnectivity: "", owner: "Sam Rivera", usedSpace: "64 GB", logicalDate: "2025-01-20" },
+  { envName: "bn4v-5630", logicalName: "env-qa-m8n2", sprint: "Sprint 42", vappId: "vapp-1d9a-4b6e", dbHost: "192.168.33.77", anmConnectivity: "", owner: "Alex Kim", usedSpace: "256 GB", logicalDate: "2025-02-01" },
+  { envName: "ty8r-1046", logicalName: "env-dev-p3w1", sprint: "Sprint 39", vappId: "vapp-7e2c-8f4a", dbHost: "mysql-svc-05.cluster", anmConnectivity: "", owner: "Morgan Tate", usedSpace: "32 GB", logicalDate: "2025-01-10" },
+  { envName: "hj6s-8925", logicalName: "env-test-q9k4", sprint: "Sprint 41", vappId: "vapp-5b0d-3c7f", dbHost: "pg-primary.region-a", anmConnectivity: "", owner: "Riley Chen", usedSpace: "96 GB", logicalDate: "2025-02-10" },
+  { envName: "wc3p-4178", logicalName: "env-perf-n2m8", sprint: "Sprint 40", vappId: "vapp-8f1a-6e9b", dbHost: "10.55.12.203", anmConnectivity: "", owner: "Casey Drew", usedSpace: "512 GB", logicalDate: "2025-02-20" },
 ];
 
 function generateId() {
@@ -67,6 +68,7 @@ function loadEnvs() {
           const env = { ...e, id: e.id || generateId() };
           // Normalize snake_case to camelCase for display
           if (e.db_host !== undefined && e.db_host !== null && env.dbHost === undefined) env.dbHost = e.db_host;
+          if (e.anm_connectivity !== undefined && e.anm_connectivity !== null && env.anmConnectivity === undefined) env.anmConnectivity = e.anm_connectivity;
           if (e.used_space !== undefined && e.used_space !== null && env.usedSpace === undefined) env.usedSpace = e.used_space;
           if (e.logical_date !== undefined && e.logical_date !== null && env.logicalDate === undefined) env.logicalDate = e.logical_date;
           // Ensure every column key exists so new fields display
@@ -175,6 +177,7 @@ function getEnvValue(env, colKey) {
   const val = env[colKey];
   if (val !== undefined && val !== null && val !== "") return String(val);
   if (colKey === "dbHost" && (env.db_host !== undefined && env.db_host !== null)) return String(env.db_host);
+  if (colKey === "anmConnectivity" && (env.anm_connectivity !== undefined && env.anm_connectivity !== null)) return String(env.anm_connectivity);
   if (colKey === "usedSpace") {
     const u = env.used_space;
     if (u !== undefined && u !== null && u !== "") return String(u);
@@ -592,6 +595,7 @@ addForm.addEventListener("submit", (e) => {
   const sprint = (fd.get("sprint") || "").trim();
   const vappId = (fd.get("vappId") || "").trim();
   const dbHost = (fd.get("dbHost") || "").trim();
+  const anmConnectivity = (fd.get("anmConnectivity") || "").trim();
   const logicalName = (fd.get("logicalName") || "").trim();
   const owner = (fd.get("owner") || "").trim();
   if (!envName || !sprint || !vappId || !logicalName || !owner) return;
@@ -601,6 +605,7 @@ addForm.addEventListener("submit", (e) => {
     sprint,
     vappId,
     dbHost: dbHost || "",
+    anmConnectivity: anmConnectivity || "",
     logicalName,
     owner,
     usedSpace: "",
