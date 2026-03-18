@@ -201,6 +201,26 @@ function getUsedSpaceColorClass(val) {
   return "used-space-high";
 }
 
+/** Return battery-style bar HTML for percentage, or escaped text for non-percentage used space values. */
+function getUsedSpaceBarHtml(val) {
+  if (val == null || val === "" || val === "—") return escapeHtml(val || "—");
+  const str = String(val).trim();
+  const num = parseFloat(str.replace(/[%\s]/g, ""));
+  const looksLikePct = str.includes("%") || (Number.isNaN(num) === false && num >= 0 && num <= 100 && !/[a-zA-Z]/.test(str.replace(/%/g, "")));
+  if (!looksLikePct || Number.isNaN(num) || num < 0) return escapeHtml(str);
+  const pct = Math.min(100, Math.max(0, num));
+  const colorClass = getUsedSpaceColorClass(val);
+  const displayText = str.match(/%/) ? str : pct + "%";
+  return (
+    '<span class="used-space-bar-wrap">' +
+    '<span class="used-space-bar">' +
+    '<span class="used-space-bar-fill ' + (colorClass || "") + '" style="width:' + pct + '%"></span>' +
+    "</span>" +
+    '<span class="used-space-bar-pct">' + escapeHtml(displayText) + "</span>" +
+    "</span>"
+  );
+}
+
 function getDisplayColumnOrder() {
   // Always include all columns; columnOrder may be from before dbHost was added
   const order = columnOrder.filter((id) => COLUMNS[id]);
@@ -244,12 +264,15 @@ function renderBody() {
           if (!col) return "";
           const val = getEnvValue(env, col.key);
           let cls = col.className ? escapeHtml(col.className) : "";
+          let content;
           if (colId === "usedSpace") {
-            const colorClass = getUsedSpaceColorClass(val);
-            if (colorClass) cls = cls ? cls + " " + colorClass : colorClass;
+            cls = cls ? cls + " cell-used-space" : "cell-used-space";
+            content = getUsedSpaceBarHtml(val);
+          } else {
+            content = escapeHtml(val);
           }
           if (cls) cls = ` class="${cls}"`;
-          return `<td${cls}>${escapeHtml(val)}</td>`;
+          return `<td${cls}>${content}</td>`;
         })
         .join("");
       const envId = escapeHtml(env.id || "");

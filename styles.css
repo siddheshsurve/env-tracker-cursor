@@ -502,7 +502,45 @@ body {
   color: var(--text-muted);
 }
 
-/* Used Space color by percentage: <50 green, 50-80 yellow, ≥80 red */
+/* Used Space: battery-style bar + percentage text */
+.env-table .cell-used-space {
+  vertical-align: middle;
+}
+.env-table .used-space-bar-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.env-table .used-space-bar {
+  display: inline-block;
+  width: 4rem;
+  height: 1rem;
+  background: var(--border);
+  border-radius: 999px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.env-table .used-space-bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.2s ease;
+}
+.env-table .used-space-bar-fill.used-space-low {
+  background: #22c55e;
+}
+.env-table .used-space-bar-fill.used-space-mid {
+  background: #eab308;
+}
+.env-table .used-space-bar-fill.used-space-high {
+  background: #ef4444;
+}
+.env-table .used-space-bar-pct {
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+}
+/* Plain text fallback (non-percentage) in Used Space cell */
 .env-table .used-space-low {
   color: #22c55e;
   font-weight: 500;
