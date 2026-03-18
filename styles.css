@@ -540,6 +540,7 @@ body {
   color: var(--text);
   white-space: nowrap;
 }
+
 /* Plain text fallback (non-percentage) in Used Space cell */
 .env-table .used-space-low {
   color: #22c55e;
