@@ -18,6 +18,7 @@ app.use(express.static(__dirname));
 const SSH_USER = process.env.SSH_USER || "";
 const SSH_PASSWORD = process.env.SSH_PASSWORD || "";
 const DF_COMMAND = "df -h . | awk 'NR==2 {print $5}'";
+const DF_CLEAN_COMMAND = "df -h . | awk 'NR==2 {gsub(/%/,\"\",$5); u=$5+0; if(u>=0&&u<=100) print 100-u\"%\"; else print \"—\" }'";
 const LOGICAL_DATE_SQL = "select logical_date from logical_date where expiration_date is null and logical_date_type = 'B';";
 const LOGICAL_DATE_REGEX = /(\d{2}-[A-Z]{3}-\d{2})/;
 
@@ -67,6 +68,53 @@ function getUsedSpace(host) {
     conn
       .on("ready", () => {
         conn.exec(DF_COMMAND, (err, stream) => {
+          if (err) {
+            conn.end();
+            return reject(err);
+          }
+          let output = "";
+          stream
+            .on("close", (code, signal) => {
+              conn.end();
+              const trimmed = output.trim();
+              if (code !== 0) {
+                return reject(new Error(trimmed || `Command exited with code ${code}`));
+              }
+              resolve(trimmed || "—");
+            })
+            .on("data", (data) => {
+              output += data.toString();
+            })
+            .stderr.on("data", (data) => {
+              output += data.toString();
+            });
+        });
+      })
+      .on("error", (err) => reject(err))
+      .connect({
+        host: host.trim(),
+        port: 22,
+        username: SSH_USER,
+        password: SSH_PASSWORD,
+        readyTimeout: 15000,
+        connectTimeout: 15000,
+      });
+  });
+}
+
+function getCleanSpace(host) {
+  return new Promise((resolve, reject) => {
+    if (!host || typeof host !== "string") {
+      return reject(new Error("Host (environment name) is required"));
+    }
+    if (!SSH_USER || !SSH_PASSWORD) {
+      return reject(new Error("SSH_USER and SSH_PASSWORD must be set in .env"));
+    }
+
+    const conn = new Client();
+    conn
+      .on("ready", () => {
+        conn.exec(DF_CLEAN_COMMAND, (err, stream) => {
           if (err) {
             conn.end();
             return reject(err);
@@ -162,6 +210,20 @@ app.post("/api/used-space", async (req, res) => {
     res.status(500).json({
       error: err.message || "Failed to fetch used space",
       usedSpace: null,
+    });
+  }
+});
+
+app.post("/api/clean-space", async (req, res) => {
+  const host = req.body?.host;
+  try {
+    const cleanSpace = await getCleanSpace(host);
+    res.json({ cleanSpace });
+  } catch (err) {
+    console.error(`[${host}] clean-space`, err.message);
+    res.status(500).json({
+      error: err.message || "Failed to fetch clean space",
+      cleanSpace: null,
     });
   }
 });

@@ -13,10 +13,11 @@ const COLUMNS = {
   logicalName: { label: "Logical name", key: "logicalName", className: "cell-name" },
   owner: { label: "Env owner", key: "owner", className: "cell-owner" },
   usedSpace: { label: "Used Space", key: "usedSpace" },
+  cleanSpace: { label: "Clean Space", key: "cleanSpace" },
   logicalDate: { label: "Logical Date", key: "logicalDate" },
 };
 
-const DEFAULT_COLUMN_ORDER = ["envName", "sprint", "vappId", "dbHost", "anmConnectivity", "logicalName", "owner", "usedSpace", "logicalDate"];
+const DEFAULT_COLUMN_ORDER = ["envName", "sprint", "vappId", "dbHost", "anmConnectivity", "logicalName", "owner", "usedSpace", "cleanSpace", "logicalDate"];
 const STORAGE_KEY = "envsync-column-order";
 const STORAGE_KEY_ENVS = "envsync-environments";
 
@@ -45,12 +46,12 @@ const DAEMON_LIST = [
 ];
 
 const DEFAULT_ENVIRONMENTS = [
-  { envName: "xk9m-2841", logicalName: "env-prod-7f2a", sprint: "Sprint 41", vappId: "vapp-9c3e-b1d8", dbHost: "10.204.88.112", anmConnectivity: "", owner: "Jordan Lee", usedSpace: "128 GB", logicalDate: "2025-02-15" },
-  { envName: "qp2w-7193", logicalName: "env-staging-x4k9", sprint: "Sprint 38", vappId: "vapp-2a7f-e5c0", dbHost: "db-02.internal.net", anmConnectivity: "", owner: "Sam Rivera", usedSpace: "64 GB", logicalDate: "2025-01-20" },
-  { envName: "bn4v-5630", logicalName: "env-qa-m8n2", sprint: "Sprint 42", vappId: "vapp-1d9a-4b6e", dbHost: "192.168.33.77", anmConnectivity: "", owner: "Alex Kim", usedSpace: "256 GB", logicalDate: "2025-02-01" },
-  { envName: "ty8r-1046", logicalName: "env-dev-p3w1", sprint: "Sprint 39", vappId: "vapp-7e2c-8f4a", dbHost: "mysql-svc-05.cluster", anmConnectivity: "", owner: "Morgan Tate", usedSpace: "32 GB", logicalDate: "2025-01-10" },
-  { envName: "hj6s-8925", logicalName: "env-test-q9k4", sprint: "Sprint 41", vappId: "vapp-5b0d-3c7f", dbHost: "pg-primary.region-a", anmConnectivity: "", owner: "Riley Chen", usedSpace: "96 GB", logicalDate: "2025-02-10" },
-  { envName: "wc3p-4178", logicalName: "env-perf-n2m8", sprint: "Sprint 40", vappId: "vapp-8f1a-6e9b", dbHost: "10.55.12.203", anmConnectivity: "", owner: "Casey Drew", usedSpace: "512 GB", logicalDate: "2025-02-20" },
+  { envName: "xk9m-2841", logicalName: "env-prod-7f2a", sprint: "Sprint 41", vappId: "vapp-9c3e-b1d8", dbHost: "10.204.88.112", anmConnectivity: "", owner: "Jordan Lee", usedSpace: "128 GB", cleanSpace: "", logicalDate: "2025-02-15" },
+  { envName: "qp2w-7193", logicalName: "env-staging-x4k9", sprint: "Sprint 38", vappId: "vapp-2a7f-e5c0", dbHost: "db-02.internal.net", anmConnectivity: "", owner: "Sam Rivera", usedSpace: "64 GB", cleanSpace: "", logicalDate: "2025-01-20" },
+  { envName: "bn4v-5630", logicalName: "env-qa-m8n2", sprint: "Sprint 42", vappId: "vapp-1d9a-4b6e", dbHost: "192.168.33.77", anmConnectivity: "", owner: "Alex Kim", usedSpace: "256 GB", cleanSpace: "", logicalDate: "2025-02-01" },
+  { envName: "ty8r-1046", logicalName: "env-dev-p3w1", sprint: "Sprint 39", vappId: "vapp-7e2c-8f4a", dbHost: "mysql-svc-05.cluster", anmConnectivity: "", owner: "Morgan Tate", usedSpace: "32 GB", cleanSpace: "", logicalDate: "2025-01-10" },
+  { envName: "hj6s-8925", logicalName: "env-test-q9k4", sprint: "Sprint 41", vappId: "vapp-5b0d-3c7f", dbHost: "pg-primary.region-a", anmConnectivity: "", owner: "Riley Chen", usedSpace: "96 GB", cleanSpace: "", logicalDate: "2025-02-10" },
+  { envName: "wc3p-4178", logicalName: "env-perf-n2m8", sprint: "Sprint 40", vappId: "vapp-8f1a-6e9b", dbHost: "10.55.12.203", anmConnectivity: "", owner: "Casey Drew", usedSpace: "512 GB", cleanSpace: "", logicalDate: "2025-02-20" },
 ];
 
 function generateId() {
@@ -70,6 +71,7 @@ function loadEnvs() {
           if (e.db_host !== undefined && e.db_host !== null && env.dbHost === undefined) env.dbHost = e.db_host;
           if (e.anm_connectivity !== undefined && e.anm_connectivity !== null && env.anmConnectivity === undefined) env.anmConnectivity = e.anm_connectivity;
           if (e.used_space !== undefined && e.used_space !== null && env.usedSpace === undefined) env.usedSpace = e.used_space;
+          if (e.clean_space !== undefined && e.clean_space !== null && env.cleanSpace === undefined) env.cleanSpace = e.clean_space;
           if (e.logical_date !== undefined && e.logical_date !== null && env.logicalDate === undefined) env.logicalDate = e.logical_date;
           // Ensure every column key exists so new fields display
           for (const key of defaultKeys) {
@@ -149,6 +151,7 @@ function getFilteredEnvs() {
       (env.dbHost && env.dbHost.toLowerCase().includes(q)) ||
       (env.db_host && String(env.db_host).toLowerCase().includes(q)) ||
       (env.usedSpace && String(env.usedSpace).toLowerCase().includes(q)) ||
+      (env.cleanSpace && String(env.cleanSpace).toLowerCase().includes(q)) ||
       (env.logicalDate && String(env.logicalDate).toLowerCase().includes(q)) ||
       (env.owner && env.owner.toLowerCase().includes(q)) ||
       (env.sprint && env.sprint.toLowerCase().includes(q));
@@ -182,6 +185,12 @@ function getEnvValue(env, colKey) {
     const u = env.used_space;
     if (u !== undefined && u !== null && u !== "") return String(u);
     return "—"; // Fetched from Unix; show placeholder when empty
+  }
+  if (colKey === "cleanSpace") {
+    const c = env.clean_space;
+    if (c !== undefined && c !== null && c !== "") return String(c);
+    if (env.cleanSpace !== undefined && env.cleanSpace !== null && env.cleanSpace !== "") return String(env.cleanSpace);
+    return "—";
   }
   if (colKey === "logicalDate") {
     const d = env.logical_date;
@@ -268,6 +277,12 @@ function renderBody() {
           if (colId === "usedSpace") {
             cls = cls ? cls + " cell-used-space" : "cell-used-space";
             content = getUsedSpaceBarHtml(val);
+          } else if (colId === "cleanSpace") {
+            const envId = escapeHtml(env.id || "");
+            const cleanVal = val && val !== "—" ? escapeHtml(val) : "";
+            content =
+              (cleanVal ? '<span class="clean-space-value">' + cleanVal + '</span> ' : '<span class="clean-space-value"></span>') +
+              '<button type="button" class="btn btn-secondary btn-clean-space" data-env-id="' + envId + '" title="Fetch clean space for this environment">Clean space</button>';
           } else {
             content = escapeHtml(val);
           }
@@ -283,6 +298,37 @@ function renderBody() {
   envCount.textContent = `${sorted.length} environment${sorted.length !== 1 ? "s" : ""}`;
   emptyState.hidden = sorted.length > 0;
   initDeleteButtons();
+  initCleanSpaceButtons();
+}
+
+function initCleanSpaceButtons() {
+  tbody.querySelectorAll(".btn-clean-space").forEach((btn) => {
+    btn.addEventListener("click", async (e) => {
+      const id = e.currentTarget.getAttribute("data-env-id");
+      if (!id) return;
+      const env = allEnvs.find((e) => e.id === id);
+      if (!env) return;
+      const host = (env.envName || "").trim();
+      if (!host) return;
+      const row = btn.closest("tr");
+      const valueEl = row && row.querySelector(".clean-space-value");
+      if (valueEl) valueEl.textContent = "…";
+      btn.disabled = true;
+      try {
+        const cleanSpace = await fetchCleanSpaceForHost(host);
+        env.cleanSpace = cleanSpace != null && cleanSpace !== "" ? String(cleanSpace) : "—";
+        saveEnvs();
+        if (valueEl) valueEl.textContent = env.cleanSpace;
+      } catch (err) {
+        const msg = err && err.message ? String(err.message) : "Error";
+        env.cleanSpace = msg.length > 50 ? msg.slice(0, 47) + "…" : msg;
+        saveEnvs();
+        if (valueEl) valueEl.textContent = env.cleanSpace;
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  });
 }
 
 function initDeleteButtons() {
@@ -554,6 +600,58 @@ function refreshUsedSpaceForAll() {
   });
 }
 
+async function fetchCleanSpaceForHost(host) {
+  let res;
+  try {
+    res = await fetch(API_BASE + "/api/clean-space", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ host: host || "" }),
+    });
+  } catch (e) {
+    return Promise.reject(new Error("API unreachable. Start server with: npm start"));
+  }
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const msg = data.error && typeof data.error === "string" ? data.error : "Request failed";
+    return Promise.reject(new Error(msg));
+  }
+  const raw = data.cleanSpace;
+  if (raw !== undefined && raw !== null) return String(raw).trim() || "—";
+  return "—";
+}
+
+function refreshCleanSpaceForAll() {
+  const btn = document.getElementById("btn-refresh-clean-space");
+  if (!btn || btn.disabled) return;
+  const originalText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = "Refreshing…";
+
+  const envs = [...allEnvs];
+  Promise.all(
+    envs.map((env) => {
+      const host = (env.envName || "").trim();
+      if (!host) return Promise.resolve();
+      return fetchCleanSpaceForHost(host)
+        .then((cleanSpace) => {
+          env.cleanSpace = cleanSpace != null && cleanSpace !== "" ? String(cleanSpace) : "—";
+        })
+        .catch((err) => {
+          const msg = err && err.message ? String(err.message) : "Error";
+          env.cleanSpace = msg.length > 50 ? msg.slice(0, 47) + "…" : msg;
+          console.error("Clean space for " + host + ":", err.message);
+        });
+    })
+  ).finally(() => {
+    btn.disabled = false;
+    btn.textContent = originalText;
+    saveEnvs();
+    render();
+    setLastUpdated();
+  });
+}
+
 async function fetchLogicalDateForHost(host) {
   let res;
   try {
@@ -608,6 +706,8 @@ function refreshLogicalDateForAll() {
 
 const btnRefreshUsedSpace = document.getElementById("btn-refresh-used-space");
 if (btnRefreshUsedSpace) btnRefreshUsedSpace.addEventListener("click", refreshUsedSpaceForAll);
+const btnRefreshCleanSpace = document.getElementById("btn-refresh-clean-space");
+if (btnRefreshCleanSpace) btnRefreshCleanSpace.addEventListener("click", refreshCleanSpaceForAll);
 const btnRefreshLogicalDate = document.getElementById("btn-refresh-logical-date");
 if (btnRefreshLogicalDate) btnRefreshLogicalDate.addEventListener("click", refreshLogicalDateForAll);
 
@@ -632,6 +732,7 @@ addForm.addEventListener("submit", (e) => {
     logicalName,
     owner,
     usedSpace: "",
+    cleanSpace: "",
     logicalDate: "",
   });
   saveEnvs();
