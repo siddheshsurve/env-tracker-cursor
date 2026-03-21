@@ -14,10 +14,14 @@ const COLUMNS = {
   owner: { label: "Env owner", key: "owner", className: "cell-owner" },
   usedSpace: { label: "Used Space", key: "usedSpace" },
   cleanSpace: { label: "Clean Space", key: "cleanSpace" },
+  fullBounce: { label: "Full Bounce", key: "fullBounce" },
+  jnextDate: { label: "JNext Date", key: "jnextDate", className: "cell-jnext" },
+  runJnext: { label: "Run JNext", key: "runJnext" },
+  upgradedPackage: { label: "Upgraded Package", key: "upgradedPackage", className: "cell-vapp" },
   logicalDate: { label: "Logical Date", key: "logicalDate" },
 };
 
-const DEFAULT_COLUMN_ORDER = ["envName", "sprint", "vappId", "dbHost", "anmConnectivity", "logicalName", "owner", "usedSpace", "cleanSpace", "logicalDate"];
+const DEFAULT_COLUMN_ORDER = ["envName", "sprint", "vappId", "dbHost", "anmConnectivity", "logicalName", "owner", "usedSpace", "cleanSpace", "fullBounce", "jnextDate", "runJnext", "upgradedPackage", "logicalDate"];
 const STORAGE_KEY = "envsync-column-order";
 const STORAGE_KEY_ENVS = "envsync-environments";
 
@@ -46,12 +50,12 @@ const DAEMON_LIST = [
 ];
 
 const DEFAULT_ENVIRONMENTS = [
-  { envName: "xk9m-2841", logicalName: "env-prod-7f2a", sprint: "Sprint 41", vappId: "vapp-9c3e-b1d8", dbHost: "10.204.88.112", anmConnectivity: "", owner: "Jordan Lee", usedSpace: "128 GB", cleanSpace: "", logicalDate: "2025-02-15" },
-  { envName: "qp2w-7193", logicalName: "env-staging-x4k9", sprint: "Sprint 38", vappId: "vapp-2a7f-e5c0", dbHost: "db-02.internal.net", anmConnectivity: "", owner: "Sam Rivera", usedSpace: "64 GB", cleanSpace: "", logicalDate: "2025-01-20" },
-  { envName: "bn4v-5630", logicalName: "env-qa-m8n2", sprint: "Sprint 42", vappId: "vapp-1d9a-4b6e", dbHost: "192.168.33.77", anmConnectivity: "", owner: "Alex Kim", usedSpace: "256 GB", cleanSpace: "", logicalDate: "2025-02-01" },
-  { envName: "ty8r-1046", logicalName: "env-dev-p3w1", sprint: "Sprint 39", vappId: "vapp-7e2c-8f4a", dbHost: "mysql-svc-05.cluster", anmConnectivity: "", owner: "Morgan Tate", usedSpace: "32 GB", cleanSpace: "", logicalDate: "2025-01-10" },
-  { envName: "hj6s-8925", logicalName: "env-test-q9k4", sprint: "Sprint 41", vappId: "vapp-5b0d-3c7f", dbHost: "pg-primary.region-a", anmConnectivity: "", owner: "Riley Chen", usedSpace: "96 GB", cleanSpace: "", logicalDate: "2025-02-10" },
-  { envName: "wc3p-4178", logicalName: "env-perf-n2m8", sprint: "Sprint 40", vappId: "vapp-8f1a-6e9b", dbHost: "10.55.12.203", anmConnectivity: "", owner: "Casey Drew", usedSpace: "512 GB", cleanSpace: "", logicalDate: "2025-02-20" },
+  { envName: "xk9m-2841", logicalName: "env-prod-7f2a", sprint: "Sprint 41", vappId: "vapp-9c3e-b1d8", dbHost: "10.204.88.112", anmConnectivity: "", owner: "Jordan Lee", usedSpace: "128 GB", cleanSpace: "", fullBounce: "", jnextDate: "", runJnext: "", upgradedPackage: "", logicalDate: "2025-02-15" },
+  { envName: "qp2w-7193", logicalName: "env-staging-x4k9", sprint: "Sprint 38", vappId: "vapp-2a7f-e5c0", dbHost: "db-02.internal.net", anmConnectivity: "", owner: "Sam Rivera", usedSpace: "64 GB", cleanSpace: "", fullBounce: "", jnextDate: "", runJnext: "", upgradedPackage: "", logicalDate: "2025-01-20" },
+  { envName: "bn4v-5630", logicalName: "env-qa-m8n2", sprint: "Sprint 42", vappId: "vapp-1d9a-4b6e", dbHost: "192.168.33.77", anmConnectivity: "", owner: "Alex Kim", usedSpace: "256 GB", cleanSpace: "", fullBounce: "", jnextDate: "", runJnext: "", upgradedPackage: "", logicalDate: "2025-02-01" },
+  { envName: "ty8r-1046", logicalName: "env-dev-p3w1", sprint: "Sprint 39", vappId: "vapp-7e2c-8f4a", dbHost: "mysql-svc-05.cluster", anmConnectivity: "", owner: "Morgan Tate", usedSpace: "32 GB", cleanSpace: "", fullBounce: "", jnextDate: "", runJnext: "", upgradedPackage: "", logicalDate: "2025-01-10" },
+  { envName: "hj6s-8925", logicalName: "env-test-q9k4", sprint: "Sprint 41", vappId: "vapp-5b0d-3c7f", dbHost: "pg-primary.region-a", anmConnectivity: "", owner: "Riley Chen", usedSpace: "96 GB", cleanSpace: "", fullBounce: "", jnextDate: "", runJnext: "", upgradedPackage: "", logicalDate: "2025-02-10" },
+  { envName: "wc3p-4178", logicalName: "env-perf-n2m8", sprint: "Sprint 40", vappId: "vapp-8f1a-6e9b", dbHost: "10.55.12.203", anmConnectivity: "", owner: "Casey Drew", usedSpace: "512 GB", cleanSpace: "", fullBounce: "", jnextDate: "", runJnext: "", upgradedPackage: "", logicalDate: "2025-02-20" },
 ];
 
 function generateId() {
@@ -72,6 +76,10 @@ function loadEnvs() {
           if (e.anm_connectivity !== undefined && e.anm_connectivity !== null && env.anmConnectivity === undefined) env.anmConnectivity = e.anm_connectivity;
           if (e.used_space !== undefined && e.used_space !== null && env.usedSpace === undefined) env.usedSpace = e.used_space;
           if (e.clean_space !== undefined && e.clean_space !== null && env.cleanSpace === undefined) env.cleanSpace = e.clean_space;
+          if (e.full_bounce !== undefined && e.full_bounce !== null && env.fullBounce === undefined) env.fullBounce = e.full_bounce;
+          if (e.jnext_date !== undefined && e.jnext_date !== null && env.jnextDate === undefined) env.jnextDate = e.jnext_date;
+          if (e.run_jnext !== undefined && e.run_jnext !== null && env.runJnext === undefined) env.runJnext = e.run_jnext;
+          if (e.upgraded_package !== undefined && e.upgraded_package !== null && env.upgradedPackage === undefined) env.upgradedPackage = e.upgraded_package;
           if (e.logical_date !== undefined && e.logical_date !== null && env.logicalDate === undefined) env.logicalDate = e.logical_date;
           // Ensure every column key exists so new fields display
           for (const key of defaultKeys) {
@@ -122,8 +130,15 @@ function loadColumnOrder() {
       const valid = parsed.filter((id) => COLUMNS[id]);
       // Merge in any columns that exist in COLUMNS but are missing from saved order (e.g. newly added dbHost)
       const merged = [...valid];
-      for (const id of allColumnIds) {
-        if (!merged.includes(id)) merged.push(id);
+      const missing = allColumnIds.filter((id) => !merged.includes(id));
+      if (missing.includes("fullBounce") && merged.includes("cleanSpace")) {
+        const ci = merged.indexOf("cleanSpace");
+        merged.splice(ci + 1, 0, "fullBounce");
+        missing
+          .filter((id) => id !== "fullBounce")
+          .forEach((id) => merged.push(id));
+      } else {
+        missing.forEach((id) => merged.push(id));
       }
       return merged.length ? merged : [...DEFAULT_COLUMN_ORDER];
     }
@@ -152,6 +167,11 @@ function getFilteredEnvs() {
       (env.db_host && String(env.db_host).toLowerCase().includes(q)) ||
       (env.usedSpace && String(env.usedSpace).toLowerCase().includes(q)) ||
       (env.cleanSpace && String(env.cleanSpace).toLowerCase().includes(q)) ||
+      (env.fullBounce && String(env.fullBounce).toLowerCase().includes(q)) ||
+      (env.jnextDate && String(env.jnextDate).toLowerCase().includes(q)) ||
+      (env.jnext_date && String(env.jnext_date).toLowerCase().includes(q)) ||
+      (env.runJnext && String(env.runJnext).toLowerCase().includes(q)) ||
+      (env.upgradedPackage && String(env.upgradedPackage).toLowerCase().includes(q)) ||
       (env.logicalDate && String(env.logicalDate).toLowerCase().includes(q)) ||
       (env.owner && env.owner.toLowerCase().includes(q)) ||
       (env.sprint && env.sprint.toLowerCase().includes(q));
@@ -189,8 +209,27 @@ function getEnvValue(env, colKey) {
   if (colKey === "cleanSpace") {
     const c = env.clean_space;
     if (c !== undefined && c !== null && c !== "") return String(c);
-    if (env.cleanSpace !== undefined && env.cleanSpace !== null && env.cleanSpace !== "") return String(env.cleanSpace);
-    return "—";
+    return val === undefined || val === null ? "" : String(val);
+  }
+  if (colKey === "fullBounce") {
+    const f = env.full_bounce;
+    if (f !== undefined && f !== null && f !== "") return String(f);
+    return val === undefined || val === null ? "" : String(val);
+  }
+  if (colKey === "jnextDate") {
+    const j = env.jnext_date;
+    if (j !== undefined && j !== null && j !== "") return String(j);
+    return val === undefined || val === null || val === "" ? "—" : String(val);
+  }
+  if (colKey === "runJnext") {
+    const r = env.run_jnext;
+    if (r !== undefined && r !== null && r !== "") return String(r);
+    return val === undefined || val === null ? "" : String(val);
+  }
+  if (colKey === "upgradedPackage") {
+    const p = env.upgraded_package;
+    if (p !== undefined && p !== null && p !== "") return String(p);
+    return val === undefined || val === null ? "" : String(val);
   }
   if (colKey === "logicalDate") {
     const d = env.logical_date;
@@ -279,10 +318,12 @@ function renderBody() {
             content = getUsedSpaceBarHtml(val);
           } else if (colId === "cleanSpace") {
             const envId = escapeHtml(env.id || "");
-            const cleanVal = val && val !== "—" ? escapeHtml(val) : "";
             content =
-              (cleanVal ? '<span class="clean-space-value">' + cleanVal + '</span> ' : '<span class="clean-space-value"></span>') +
-              '<button type="button" class="btn btn-secondary btn-clean-space" data-env-id="' + envId + '" title="Fetch clean space for this environment">Clean space</button>';
+              '<button type="button" class="btn btn-secondary btn-clean-space" data-env-id="' + envId + '" title="Clean space action">Clean space</button>';
+          } else if (colId === "fullBounce") {
+            const envId = escapeHtml(env.id || "");
+            content =
+              '<button type="button" class="btn btn-secondary btn-full-bounce" data-env-id="' + envId + '" title="Full bounce action">Full bounce</button>';
           } else {
             content = escapeHtml(val);
           }
@@ -299,6 +340,204 @@ function renderBody() {
   emptyState.hidden = sorted.length > 0;
   initDeleteButtons();
   initCleanSpaceButtons();
+  initFullBounceButtons();
+}
+
+/** Trailing digits from env name (illnqw8358 → 8358) — must match server logic. */
+function getEnvironmentNumberFromName(envName) {
+  if (!envName || typeof envName !== "string") return null;
+  const m = String(envName).trim().match(/(\d+)$/);
+  return m ? m[1] : null;
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/** vApp id → VAPP_NNN for J-Boot-PMX ENV (same rules as server). */
+function normalizeVappForJenkinsClient(vappId) {
+  if (vappId == null || String(vappId).trim() === "") return null;
+  const s = String(vappId).trim();
+  const m = s.match(/(\d+)/);
+  if (m) return `VAPP_${m[1]}`;
+  const u = s.replace(/-/g, "_").toUpperCase();
+  if (/^VAPP_\d+$/.test(u)) return u;
+  return null;
+}
+
+function jenkinsProfileQuery(profile) {
+  return `profile=${encodeURIComponent(profile)}`;
+}
+
+/**
+ * Resolve build # and wait for completion (queue + lastBuild + build-status).
+ * @param {string} profile - "cleanup" | "fullBounce"
+ * @param {{ acceptAnyJenkinsResult?: boolean }} opts - if true, do not throw on FAILURE/UNSTABLE
+ * @returns {{ buildNum: number, jenkinsResult: string }}
+ */
+async function waitForJenkinsJobPipeline(
+  queueItemUrl,
+  previousBuildNumber,
+  triggeredAtMs,
+  button,
+  profile,
+  opts
+) {
+  const acceptAny = opts && opts.acceptAnyJenkinsResult === true;
+  const api = API_BASE || "";
+  const pq = jenkinsProfileQuery(profile);
+  let buildNum = null;
+  let buildPageUrl = null;
+
+  if (queueItemUrl) {
+    for (let i = 0; i < 90; i++) {
+      const r = await fetch(
+        `${api}/api/jenkins/queue?url=${encodeURIComponent(queueItemUrl)}&${pq}`
+      );
+      const q = await r.json();
+      if (!r.ok) throw new Error(q.error || q.detail || "Queue poll failed");
+      if (q.cancelled) throw new Error("Build was cancelled in the Jenkins queue.");
+      if (q.executableNumber != null) {
+        buildNum = q.executableNumber;
+        buildPageUrl = q.executableUrl || null;
+        break;
+      }
+      if (q.queueGone) break;
+      if (button) button.textContent = "In queue…";
+      await sleep(1500);
+    }
+  }
+
+  if (buildNum == null) {
+    await sleep(2000);
+    if (button) button.textContent = "Finding build #…";
+    for (let i = 0; i < 200; i++) {
+      const r = await fetch(`${api}/api/jenkins/last-build?${pq}`);
+      const j = await r.json();
+      if (!r.ok) throw new Error(j.error || j.detail || "last-build poll failed");
+      if (j.number != null) {
+        const n = Number(j.number);
+        const prevOk =
+          previousBuildNumber != null && !Number.isNaN(Number(previousBuildNumber));
+        if (prevOk && n > Number(previousBuildNumber)) {
+          buildNum = n;
+          buildPageUrl = j.url || buildPageUrl;
+          break;
+        }
+        if (!prevOk && triggeredAtMs != null) {
+          const ts = j.timestamp != null ? Number(j.timestamp) : 0;
+          if (ts >= Number(triggeredAtMs) - 20000) {
+            buildNum = n;
+            buildPageUrl = j.url || buildPageUrl;
+            break;
+          }
+        }
+        if (!prevOk && j.building === true) {
+          buildNum = n;
+          buildPageUrl = j.url || buildPageUrl;
+          break;
+        }
+      }
+      if (button) button.textContent = "Finding build #…";
+      await sleep(1500);
+    }
+  }
+
+  if (buildNum == null) {
+    throw new Error(
+      "Could not detect the new build (queue expired and lastBuild did not advance). Check the job in Jenkins."
+    );
+  }
+
+  if (buildPageUrl) {
+    try {
+      window.open(buildPageUrl, "_blank", "noopener,noreferrer");
+    } catch (_) {
+      /* popup may be blocked */
+    }
+  }
+
+  if (button) button.textContent = "Build #" + buildNum + "…";
+
+  let jenkinsResult = null;
+  for (let i = 0; i < 1200; i++) {
+    const r = await fetch(
+      `${api}/api/jenkins/build-status?number=${encodeURIComponent(buildNum)}&${pq}`
+    );
+    const b = await r.json();
+    if (!r.ok) throw new Error(b.error || b.detail || "Build status failed");
+    const hasResult = b.result != null && String(b.result).length > 0;
+    if (!b.building && hasResult) {
+      jenkinsResult = String(b.result);
+      if (!acceptAny && b.result !== "SUCCESS") {
+        throw new Error(
+          `Jenkins build finished with result: ${b.result}. Check Console Output in Jenkins.`
+        );
+      }
+      break;
+    }
+    if (button) button.textContent = "Build #" + buildNum + " running…";
+    await sleep(3000);
+  }
+  if (jenkinsResult == null) {
+    throw new Error("Timed out waiting for the build to finish (still running in Jenkins).");
+  }
+
+  return { buildNum, jenkinsResult };
+}
+
+/**
+ * ENV_CLEANUP: must end with Finished: SUCCESS in console.
+ */
+async function waitForCleanSpacePipeline(queueItemUrl, previousBuildNumber, triggeredAtMs, button) {
+  const { buildNum } = await waitForJenkinsJobPipeline(
+    queueItemUrl,
+    previousBuildNumber,
+    triggeredAtMs,
+    button,
+    "cleanup",
+    { acceptAnyJenkinsResult: false }
+  );
+  const api = API_BASE || "";
+  const r = await fetch(
+    `${api}/api/jenkins/console-verify?number=${encodeURIComponent(buildNum)}&${jenkinsProfileQuery("cleanup")}`
+  );
+  const c = await r.json();
+  if (!r.ok) throw new Error(c.error || "Console verify failed");
+  if (!c.finishedSuccess) {
+    throw new Error(
+      'Build reported SUCCESS but the console log did not contain "Finished: SUCCESS". Open Console Output in Jenkins to verify.'
+    );
+  }
+  return buildNum;
+}
+
+/**
+ * J-Boot-PMX: report Jenkins result + last console line (any outcome).
+ */
+async function waitForFullBouncePipeline(queueItemUrl, previousBuildNumber, triggeredAtMs, button) {
+  const { buildNum, jenkinsResult } = await waitForJenkinsJobPipeline(
+    queueItemUrl,
+    previousBuildNumber,
+    triggeredAtMs,
+    button,
+    "fullBounce",
+    { acceptAnyJenkinsResult: true }
+  );
+  const api = API_BASE || "";
+  const r = await fetch(
+    `${api}/api/jenkins/console-summary?number=${encodeURIComponent(buildNum)}&${jenkinsProfileQuery("fullBounce")}`
+  );
+  const s = await r.json();
+  if (!r.ok) throw new Error(s.error || "Console summary failed");
+  return {
+    buildNum,
+    jenkinsResult,
+    lastLine: s.lastLine || "",
+    lastFew: s.lastFew || "",
+    finishedSuccess: !!s.finishedSuccess,
+    finishedFailure: !!s.finishedFailure,
+  };
 }
 
 function initCleanSpaceButtons() {
@@ -306,26 +545,123 @@ function initCleanSpaceButtons() {
     btn.addEventListener("click", async (e) => {
       const id = e.currentTarget.getAttribute("data-env-id");
       if (!id) return;
-      const env = allEnvs.find((e) => e.id === id);
+      const env = allEnvs.find((r) => r.id === id);
       if (!env) return;
-      const host = (env.envName || "").trim();
-      if (!host) return;
-      const row = btn.closest("tr");
-      const valueEl = row && row.querySelector(".clean-space-value");
-      if (valueEl) valueEl.textContent = "…";
-      btn.disabled = true;
+      const envName = getEnvValue(env, "envName");
+      const envNum = getEnvironmentNumberFromName(envName);
+      if (!envNum) {
+        alert(
+          "Cannot derive environment number from this name. Use a name ending in digits (e.g. illnqw8358 → 8358)."
+        );
+        return;
+      }
+      if (
+        !confirm(
+          `Trigger Jenkins ENV_CLEANUP for ENV=${envNum} (LIBS_CLEANUP only)?\n\nThe app will wait until the job completes and the log shows "Finished: SUCCESS".`
+        )
+      ) {
+        return;
+      }
+      const b = e.currentTarget;
+      const prevText = b.textContent;
+      b.disabled = true;
+      b.textContent = "Queuing…";
       try {
-        const cleanSpace = await fetchCleanSpaceForHost(host);
-        env.cleanSpace = cleanSpace != null && cleanSpace !== "" ? String(cleanSpace) : "—";
+        const res = await fetch((API_BASE || "") + "/api/clean-space", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ envName }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          throw new Error(data.error || res.statusText || "Request failed");
+        }
+        b.textContent = data.queueItemUrl ? "Waiting in queue…" : "Finding build #…";
+        const buildNum = await waitForCleanSpacePipeline(
+          data.queueItemUrl || null,
+          data.previousBuildNumber,
+          data.triggeredAtMs,
+          b
+        );
+        b.textContent = "Refreshing used space…";
+        await refreshUsedSpaceCore();
         saveEnvs();
-        if (valueEl) valueEl.textContent = env.cleanSpace;
+        render();
+        setLastUpdated();
+        alert(
+          `Clean space job completed successfully (build #${buildNum}).\n\n` +
+            `Console output contains "Finished: SUCCESS".\n\n` +
+            `Used space has been refreshed for all environments.`
+        );
       } catch (err) {
-        const msg = err && err.message ? String(err.message) : "Error";
-        env.cleanSpace = msg.length > 50 ? msg.slice(0, 47) + "…" : msg;
-        saveEnvs();
-        if (valueEl) valueEl.textContent = env.cleanSpace;
+        alert("Clean space (Jenkins): " + (err.message || String(err)));
       } finally {
-        btn.disabled = false;
+        b.disabled = false;
+        b.textContent = prevText;
+      }
+    });
+  });
+}
+
+/** Per-row Full bounce — J-Boot-PMX on ilcechr042 (see .env). */
+function initFullBounceButtons() {
+  tbody.querySelectorAll(".btn-full-bounce").forEach((btn) => {
+    btn.addEventListener("click", async (e) => {
+      const id = e.currentTarget.getAttribute("data-env-id");
+      if (!id) return;
+      const env = allEnvs.find((r) => r.id === id);
+      if (!env) return;
+      const vappRaw = getEnvValue(env, "vappId");
+      const envNorm = normalizeVappForJenkinsClient(vappRaw);
+      if (!envNorm) {
+        alert(
+          "Set a valid vApp ID for this row (e.g. VAPP_81 or any value containing the number, like vapp-148)."
+        );
+        return;
+      }
+      if (
+        !confirm(
+          `Trigger Full bounce (J-Boot-PMX) for ENV=${envNorm}?\n\n` +
+            `Uses: ENV_TYPE=ST, Action=ReStart, ComponentType=FULL, Component=FULL, CleanLogs/CleanCache=ON, OnFailure=skip.\n\n` +
+            `The app will wait until the pipeline finishes and show the Jenkins result and last console line.`
+        )
+      ) {
+        return;
+      }
+      const b = e.currentTarget;
+      const prevText = b.textContent;
+      b.disabled = true;
+      b.textContent = "Queuing…";
+      try {
+        const res = await fetch((API_BASE || "") + "/api/full-bounce", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ vappId: vappRaw }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          throw new Error(data.error || res.statusText || "Request failed");
+        }
+        b.textContent = data.queueItemUrl ? "Waiting in queue…" : "Finding build #…";
+        const out = await waitForFullBouncePipeline(
+          data.queueItemUrl || null,
+          data.previousBuildNumber,
+          data.triggeredAtMs,
+          b
+        );
+        alert(
+          `Full bounce finished (build #${out.buildNum}).\n\n` +
+            `Jenkins result: ${out.jenkinsResult}\n\n` +
+            `Last console line:\n${out.lastLine || "(none)"}\n\n` +
+            (out.finishedSuccess
+              ? "You can run Refresh All if needed."
+              : "Check Console Output in Jenkins for details.")
+        );
+      } catch (err) {
+        alert("Full bounce (Jenkins): " + (err.message || String(err)));
+      } finally {
+        b.disabled = false;
+        b.textContent = prevText;
       }
     });
   });
@@ -400,13 +736,8 @@ async function fetchDaemonStatusForHost(host, daemon) {
   return status === "Up" || status === "Down" ? status : "Down";
 }
 
-function refreshDaemonStatusForAll() {
-  const btn = document.getElementById("btn-refresh-daemon-status");
-  if (!btn || btn.disabled) return;
-  const originalText = btn.textContent;
-  btn.disabled = true;
-  btn.textContent = "Refreshing…";
-
+/** Fetch daemon status for every env × daemon. No UI. */
+function refreshDaemonStatusCore() {
   const envs = [...allEnvs];
   const tasks = [];
   envs.forEach((env) => {
@@ -425,15 +756,8 @@ function refreshDaemonStatusForAll() {
       );
     });
   });
-  Promise.all(tasks).finally(() => {
-    btn.disabled = false;
-    btn.textContent = originalText;
-    renderDaemonTable();
-  });
+  return Promise.all(tasks);
 }
-
-const btnRefreshDaemonStatus = document.getElementById("btn-refresh-daemon-status");
-if (btnRefreshDaemonStatus) btnRefreshDaemonStatus.addEventListener("click", refreshDaemonStatusForAll);
 
 function render() {
   renderHeader();
@@ -569,15 +893,10 @@ async function fetchUsedSpaceForHost(host) {
   return "—";
 }
 
-function refreshUsedSpaceForAll() {
-  const btn = document.getElementById("btn-refresh-used-space");
-  if (!btn || btn.disabled) return;
-  const originalText = btn.textContent;
-  btn.disabled = true;
-  btn.textContent = "Refreshing…";
-
+/** Refetch used space for every row. No UI (used by Refresh All and after Clean space). */
+function refreshUsedSpaceCore() {
   const envs = [...allEnvs];
-  Promise.all(
+  return Promise.all(
     envs.map((env) => {
       const host = (env.envName || "").trim();
       if (!host) return Promise.resolve();
@@ -591,65 +910,7 @@ function refreshUsedSpaceForAll() {
           console.error("Used space for " + host + ":", err.message);
         });
     })
-  ).finally(() => {
-    btn.disabled = false;
-    btn.textContent = originalText;
-    saveEnvs();
-    render();
-    setLastUpdated();
-  });
-}
-
-async function fetchCleanSpaceForHost(host) {
-  let res;
-  try {
-    res = await fetch(API_BASE + "/api/clean-space", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ host: host || "" }),
-    });
-  } catch (e) {
-    return Promise.reject(new Error("API unreachable. Start server with: npm start"));
-  }
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) {
-    const msg = data.error && typeof data.error === "string" ? data.error : "Request failed";
-    return Promise.reject(new Error(msg));
-  }
-  const raw = data.cleanSpace;
-  if (raw !== undefined && raw !== null) return String(raw).trim() || "—";
-  return "—";
-}
-
-function refreshCleanSpaceForAll() {
-  const btn = document.getElementById("btn-refresh-clean-space");
-  if (!btn || btn.disabled) return;
-  const originalText = btn.textContent;
-  btn.disabled = true;
-  btn.textContent = "Refreshing…";
-
-  const envs = [...allEnvs];
-  Promise.all(
-    envs.map((env) => {
-      const host = (env.envName || "").trim();
-      if (!host) return Promise.resolve();
-      return fetchCleanSpaceForHost(host)
-        .then((cleanSpace) => {
-          env.cleanSpace = cleanSpace != null && cleanSpace !== "" ? String(cleanSpace) : "—";
-        })
-        .catch((err) => {
-          const msg = err && err.message ? String(err.message) : "Error";
-          env.cleanSpace = msg.length > 50 ? msg.slice(0, 47) + "…" : msg;
-          console.error("Clean space for " + host + ":", err.message);
-        });
-    })
-  ).finally(() => {
-    btn.disabled = false;
-    btn.textContent = originalText;
-    saveEnvs();
-    render();
-    setLastUpdated();
-  });
+  );
 }
 
 async function fetchLogicalDateForHost(host) {
@@ -673,15 +934,9 @@ async function fetchLogicalDateForHost(host) {
   return "—";
 }
 
-function refreshLogicalDateForAll() {
-  const btn = document.getElementById("btn-refresh-logical-date");
-  if (!btn || btn.disabled) return;
-  const originalText = btn.textContent;
-  btn.disabled = true;
-  btn.textContent = "Refreshing…";
-
+function refreshLogicalDateCore() {
   const envs = [...allEnvs];
-  Promise.all(
+  return Promise.all(
     envs.map((env) => {
       const host = (env.envName || "").trim();
       if (!host) return Promise.resolve();
@@ -695,21 +950,79 @@ function refreshLogicalDateForAll() {
           console.error("Logical date for " + host + ":", err.message);
         });
     })
-  ).finally(() => {
-    btn.disabled = false;
-    btn.textContent = originalText;
-    saveEnvs();
-    render();
-    setLastUpdated();
-  });
+  );
 }
 
-const btnRefreshUsedSpace = document.getElementById("btn-refresh-used-space");
-if (btnRefreshUsedSpace) btnRefreshUsedSpace.addEventListener("click", refreshUsedSpaceForAll);
-const btnRefreshCleanSpace = document.getElementById("btn-refresh-clean-space");
-if (btnRefreshCleanSpace) btnRefreshCleanSpace.addEventListener("click", refreshCleanSpaceForAll);
-const btnRefreshLogicalDate = document.getElementById("btn-refresh-logical-date");
-if (btnRefreshLogicalDate) btnRefreshLogicalDate.addEventListener("click", refreshLogicalDateForAll);
+async function fetchJnextPlanForHost(host) {
+  let res;
+  try {
+    res = await fetch(API_BASE + "/api/jnext-plan", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ host: host || "" }),
+    });
+  } catch (e) {
+    return Promise.reject(new Error("API unreachable. Start server with: npm start"));
+  }
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const msg = data.error && typeof data.error === "string" ? data.error : "Request failed";
+    return Promise.reject(new Error(msg));
+  }
+  const raw = data.jnextPlanLine;
+  if (raw !== undefined && raw !== null) return String(raw).trim();
+  return "";
+}
+
+function refreshJnextPlanCore() {
+  const envs = [...allEnvs];
+  return Promise.all(
+    envs.map((env) => {
+      const host = (env.envName || "").trim();
+      if (!host) return Promise.resolve();
+      return fetchJnextPlanForHost(host)
+        .then((line) => {
+          env.jnextDate = line != null && line !== "" ? String(line) : "—";
+        })
+        .catch((err) => {
+          const msg = err && err.message ? String(err.message) : "Error";
+          env.jnextDate = msg.length > 80 ? msg.slice(0, 77) + "…" : msg;
+          console.error("JNext plan for " + host + ":", err.message);
+        });
+    })
+  );
+}
+
+/**
+ * Runs used space → logical date → JNext date → daemon status (sequential phases).
+ */
+async function refreshAll() {
+  const btn = document.getElementById("btn-refresh-all");
+  if (!btn || btn.disabled) return;
+  const originalText = btn.textContent;
+  btn.disabled = true;
+  try {
+    const steps = [
+      ["Used space…", refreshUsedSpaceCore],
+      ["Logical date…", refreshLogicalDateCore],
+      ["JNext date…", refreshJnextPlanCore],
+      ["Daemon status…", refreshDaemonStatusCore],
+    ];
+    for (const [label, run] of steps) {
+      btn.textContent = label;
+      await run();
+      saveEnvs();
+      render();
+      setLastUpdated();
+    }
+  } finally {
+    btn.disabled = false;
+    btn.textContent = originalText;
+  }
+}
+
+const btnRefreshAll = document.getElementById("btn-refresh-all");
+if (btnRefreshAll) btnRefreshAll.addEventListener("click", () => refreshAll());
 
 addForm.addEventListener("submit", (e) => {
   e.preventDefault();
@@ -721,6 +1034,9 @@ addForm.addEventListener("submit", (e) => {
   const anmConnectivity = (fd.get("anmConnectivity") || "").trim();
   const logicalName = (fd.get("logicalName") || "").trim();
   const owner = (fd.get("owner") || "").trim();
+  const jnextDate = (fd.get("jnextDate") || "").trim();
+  const runJnext = (fd.get("runJnext") || "").trim();
+  const upgradedPackage = (fd.get("upgradedPackage") || "").trim();
   if (!envName || !sprint || !vappId || !logicalName || !owner) return;
   allEnvs.push({
     id: generateId(),
@@ -733,6 +1049,10 @@ addForm.addEventListener("submit", (e) => {
     owner,
     usedSpace: "",
     cleanSpace: "",
+    fullBounce: "",
+    jnextDate,
+    runJnext,
+    upgradedPackage,
     logicalDate: "",
   });
   saveEnvs();
@@ -746,6 +1066,11 @@ addForm.addEventListener("submit", (e) => {
 populateFilters();
 render();
 setLastUpdated();
+
+/** On first load, run the same sequence as Refresh All (no click required). */
+if (btnRefreshAll) {
+  refreshAll();
+}
 
 (function initThemeToggle() {
   const toggle = document.getElementById("theme-toggle");

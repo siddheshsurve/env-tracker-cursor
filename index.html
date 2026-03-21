@@ -74,6 +74,18 @@
             <label for="input-owner">Env owner</label>
             <input type="text" id="input-owner" name="owner" required placeholder="e.g. Alice Chen" />
           </div>
+          <div class="add-form-row">
+            <label for="input-jnextDate">JNext Date</label>
+            <input type="text" id="input-jnextDate" name="jnextDate" placeholder="e.g. 2025-03-01" />
+          </div>
+          <div class="add-form-row">
+            <label for="input-runJnext">Run JNext</label>
+            <input type="text" id="input-runJnext" name="runJnext" placeholder="e.g. Yes / No / batch id" />
+          </div>
+          <div class="add-form-row">
+            <label for="input-upgradedPackage">Upgraded Package</label>
+            <input type="text" id="input-upgradedPackage" name="upgradedPackage" placeholder="e.g. package name / version" />
+          </div>
           <div class="add-form-actions">
             <button type="submit" class="btn btn-primary">Add entry</button>
             <button type="button" id="btn-cancel-add" class="btn btn-secondary">Cancel</button>
@@ -95,9 +107,7 @@
           </select>
         </div>
         <div class="toolbar-right">
-          <button type="button" id="btn-refresh-used-space" class="btn btn-secondary btn-refresh-space" title="Fetch used space from each Unix host (env name = host)">Refresh used space</button>
-          <button type="button" id="btn-refresh-clean-space" class="btn btn-secondary btn-refresh-space" title="Fetch clean (available) space from each Unix host">Refresh clean space</button>
-          <button type="button" id="btn-refresh-logical-date" class="btn btn-secondary btn-refresh-space" title="Fetch logical date from each Unix host via sqla">Refresh logical date</button>
+          <button type="button" id="btn-refresh-all" class="btn btn-secondary btn-refresh-space" title="Refresh used space, logical date, JNext date, and daemon status for all environments">Refresh All</button>
           <span class="env-count" id="env-count">0 environments</span>
         </div>
       </section>
@@ -122,7 +132,7 @@
       <section class="daemon-status-wrap" role="region" aria-label="Daemon Status">
         <div class="daemon-status-header">
           <h2 class="daemon-status-title">Daemon Status</h2>
-          <button type="button" id="btn-refresh-daemon-status" class="btn btn-secondary" title="Check daemon status on each Unix host">Refresh daemon status</button>
+          <p class="daemon-status-hint">Use <strong>Refresh All</strong> in the toolbar to update this table.</p>
         </div>
         <div class="daemon-table-scroll">
           <table class="daemon-table" id="daemon-table">

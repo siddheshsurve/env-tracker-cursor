@@ -2,6 +2,9 @@
   "name": "env-sync",
   "version": "1.0.0",
   "description": "Testing environments dashboard with used space from Unix hosts",
+  "engines": {
+    "node": ">=18"
+  },
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
