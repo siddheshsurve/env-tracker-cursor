@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Full bounce – EnvTracker</title>
+  <script>
+    (function () {
+      var t = localStorage.getItem("envsync-theme") || "dark";
+      document.documentElement.setAttribute("data-theme", t);
+    })();
+  </script>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <div class="header-inner">
+        <div class="header-left">
+          <h1 class="logo">
+            <span class="logo-icon" aria-hidden="true">◇</span>
+            Full bounce
+          </h1>
+          <p class="tagline">J-Boot-PMX — sign in with your Jenkins account</p>
+        </div>
+        <div class="header-right">
+          <button type="button" id="theme-toggle" class="btn btn-theme-toggle" title="Switch theme" aria-label="Switch between light and dark theme">
+            <span id="theme-toggle-label">Light</span>
+          </button>
+          <a href="index.html" class="btn btn-secondary">← Back to dashboard</a>
+        </div>
+      </div>
+    </header>
+
+    <main class="main main-narrow">
+      <section class="full-bounce-card add-entry" id="full-bounce-section">
+        <p id="fb-context" class="full-bounce-context"></p>
+        <form id="fb-form" class="add-form" autocomplete="username">
+          <div class="add-form-row">
+            <label for="fb-username">Username</label>
+            <input type="text" id="fb-username" name="jenkinsUsername" required autocomplete="username" />
+          </div>
+          <div class="add-form-row">
+            <label for="fb-password">Password</label>
+            <input type="password" id="fb-password" name="jenkinsPassword" required autocomplete="current-password" />
+          </div>
+          <p class="full-bounce-note">
+            Uses your Jenkins login for <strong>J-Boot-PMX</strong> only (Basic auth). The server sends these instead of <code>JENKINS_USER</code> / API token from <code>.env</code>.
+          </p>
+          <div class="add-form-actions">
+            <button type="submit" class="btn btn-primary" id="fb-submit">Full Bounce</button>
+          </div>
+        </form>
+        <p id="fb-status" class="full-bounce-status" aria-live="polite"></p>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <span>EnvTracker</span>
+    </footer>
+  </div>
+  <script src="full-bounce.js"></script>
+</body>
+</html>

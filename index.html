@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>EnvSync – Testing Environments Dashboard</title>
+  <title>EnvTracker – Testing Environments Dashboard</title>
   <script>
     (function () {
       var t = localStorage.getItem("envsync-theme") || "dark";
@@ -23,7 +23,7 @@
         <div class="header-left">
           <h1 class="logo">
             <span class="logo-icon" aria-hidden="true">◇</span>
-            EnvSync
+            EnvTracker
           </h1>
           <p class="tagline">Testing environments overview</p>
         </div>
@@ -79,8 +79,8 @@
             <input type="text" id="input-jnextDate" name="jnextDate" placeholder="e.g. 2025-03-01" />
           </div>
           <div class="add-form-row">
-            <label for="input-runJnext">Run JNext</label>
-            <input type="text" id="input-runJnext" name="runJnext" placeholder="e.g. Yes / No / batch id" />
+            <label for="input-runJnext">Run JNext (notes)</label>
+            <input type="text" id="input-runJnext" name="runJnext" placeholder="Optional; use Run JNext in the table to execute" />
           </div>
           <div class="add-form-row">
             <label for="input-upgradedPackage">Upgraded Package</label>
@@ -146,7 +146,7 @@
     </main>
 
     <footer class="footer">
-      <span>EnvSync Dashboard</span>
+      <span>EnvTracker</span>
       <span id="last-updated">—</span>
     </footer>
   </div>

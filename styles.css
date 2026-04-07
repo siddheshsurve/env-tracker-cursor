@@ -1,4 +1,4 @@
-/* EnvSync Dashboard – Testing Environments */
+/* EnvTracker – Testing Environments */
 
 /* Dark theme (default) */
 :root,
@@ -28,8 +28,9 @@
   --border: #dde4f5;
   --text: #1e293b;
   --text-muted: #64748b;
-  --accent: #0ea5e9;
-  --accent-hover: #0284c7;
+  /* Slightly darker primary than sky-500 for clearer contrast on light UI */
+  --accent: #0284c7;
+  --accent-hover: #0369a1;
   --success: #10b981;
   --section-shadow: 0 4px 14px rgba(15, 23, 42, 0.08), 0 2px 6px rgba(15, 23, 42, 0.04);
   --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
@@ -52,7 +53,7 @@
 }
 [data-theme="light"] .search-wrap input:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.12);
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.18);
 }
 [data-theme="light"] .env-table th,
 [data-theme="light"] .daemon-table th {
@@ -65,7 +66,7 @@
 [data-theme="light"] .btn-primary:focus-visible,
 [data-theme="light"] .btn-theme-toggle:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.25);
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.3);
 }
 [data-theme="light"] .footer {
   border-top-color: #dde4f5;
@@ -119,6 +120,10 @@ body {
 .header-right {
   flex: 0 0 auto;
   margin-left: auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .btn-theme-toggle {
@@ -162,6 +167,43 @@ body {
   margin: 0 auto;
   width: 100%;
   padding: 1.5rem;
+}
+
+.main-narrow {
+  max-width: 32rem;
+}
+
+.full-bounce-card {
+  margin-top: 0.5rem;
+}
+
+.full-bounce-context {
+  margin: 0 0 1rem;
+  font-size: 0.9375rem;
+  color: var(--text);
+}
+
+.full-bounce-context code {
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+}
+
+.full-bounce-note {
+  margin: 0 0 1rem;
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+
+.full-bounce-note code {
+  font-size: 0.75rem;
+}
+
+.full-bounce-status {
+  margin: 1rem 0 0;
+  font-size: 0.875rem;
+  color: var(--accent);
+  min-height: 1.25rem;
 }
 
 /* Toolbar */
@@ -510,6 +552,10 @@ body {
   line-height: 1.35;
 }
 
+.env-table .cell-run-jnext {
+  vertical-align: middle;
+}
+
 /* Used Space: battery-style bar + percentage text */
 .env-table .cell-used-space {
   vertical-align: middle;
@@ -595,6 +641,63 @@ body {
   color: #ca8a04;
 }
 .env-table .btn-full-bounce:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+/* Run GSD — teal */
+.env-table .btn-run-gsd {
+  font-size: 0.8125rem;
+  padding: 0.35rem 0.6rem;
+  background: rgba(20, 184, 166, 0.12);
+  color: #0d9488;
+  border: 1px solid rgba(20, 184, 166, 0.38);
+  font-weight: 500;
+}
+.env-table .btn-run-gsd:hover {
+  background: rgba(20, 184, 166, 0.22);
+  border-color: rgba(20, 184, 166, 0.55);
+  color: #0f766e;
+}
+.env-table .btn-run-gsd:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+/* Run JNext — blue (same sizing as Clean space / Full bounce) */
+.env-table .btn-run-jnext {
+  font-size: 0.8125rem;
+  padding: 0.35rem 0.6rem;
+  background: rgba(59, 130, 246, 0.14);
+  color: #3b82f6;
+  border: 1px solid rgba(59, 130, 246, 0.4);
+  font-weight: 500;
+}
+.env-table .btn-run-jnext:hover {
+  background: rgba(59, 130, 246, 0.24);
+  border-color: rgba(59, 130, 246, 0.55);
+  color: #2563eb;
+}
+.env-table .btn-run-jnext:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+/* Deploy HF — purple */
+.env-table .btn-deploy-hf {
+  font-size: 0.8125rem;
+  padding: 0.35rem 0.6rem;
+  background: rgba(168, 85, 247, 0.12);
+  color: #a855f7;
+  border: 1px solid rgba(168, 85, 247, 0.38);
+  font-weight: 500;
+}
+.env-table .btn-deploy-hf:hover {
+  background: rgba(168, 85, 247, 0.22);
+  border-color: rgba(168, 85, 247, 0.55);
+  color: #9333ea;
+}
+.env-table .btn-deploy-hf:disabled {
   opacity: 0.65;
   cursor: not-allowed;
 }

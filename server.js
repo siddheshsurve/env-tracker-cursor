@@ -1,6 +1,7 @@
 /**
- * EnvSync API server – fetches used space, logical date, and JNext plan from Unix via SSH.
- * Set SSH_USER / SSH_PASSWORD and optionally JNEXTPLAN_USER / JNEXTPLAN_PASSWORD in .env.
+ * EnvTracker API server – fetches used space, logical date, and JNext plan from Unix via SSH.
+ * Set SSH_USER / SSH_PASSWORD and optionally JNEXTPLAN_USER / JNEXTPLAN_PASSWORD in .env
+ * (used for planman showinfo, JnextPlan -to, etc.).
  */
 
 require("dotenv").config();
@@ -280,6 +281,93 @@ function getJnextPlanProductionEndLine(host) {
   });
 }
 
+/**
+ * Validate MM/DD/YYYY and return normalized zero-padded string, or null.
+ */
+function parseAndNormalizeMMDDYYYY(str) {
+  const m = String(str || "")
+    .trim()
+    .match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (!m) return null;
+  const mm = parseInt(m[1], 10);
+  const dd = parseInt(m[2], 10);
+  const yyyy = parseInt(m[3], 10);
+  if (mm < 1 || mm > 12 || dd < 1 || dd > 31) return null;
+  const d = new Date(yyyy, mm - 1, dd);
+  if (
+    d.getFullYear() !== yyyy ||
+    d.getMonth() !== mm - 1 ||
+    d.getDate() !== dd
+  ) {
+    return null;
+  }
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${pad(mm)}/${pad(dd)}/${yyyy}`;
+}
+
+/**
+ * SSH as JNext plan user: JnextPlan -to <MM/DD/YYYY> (LD+1 from client).
+ * Collects combined stdout/stderr until the remote command exits.
+ */
+function runJnextPlanOnHost(host, toDateStr) {
+  return new Promise((resolve, reject) => {
+    const h = String(host || "").trim().toLowerCase();
+    if (!h) {
+      return reject(new Error("Host (environment name) is required"));
+    }
+    if (!JNEXTPLAN_USER || !JNEXTPLAN_PASSWORD) {
+      return reject(
+        new Error("JNEXTPLAN_USER and JNEXTPLAN_PASSWORD must be set in .env")
+      );
+    }
+    const normalized = parseAndNormalizeMMDDYYYY(toDateStr);
+    if (!normalized) {
+      return reject(
+        new Error("toDate must be a valid date in MM/DD/YYYY format")
+      );
+    }
+
+    const cmd = `bash -l -c 'JnextPlan -to ${normalized}'`;
+
+    const conn = new Client();
+    conn
+      .on("ready", () => {
+        conn.exec(cmd, (err, stream) => {
+          if (err) {
+            conn.end();
+            return reject(err);
+          }
+          let output = "";
+          stream
+            .on("close", (code) => {
+              conn.end();
+              const exitCode = code == null ? -1 : code;
+              resolve({
+                exitCode,
+                output: output.trim(),
+                toDate: normalized,
+              });
+            })
+            .on("data", (data) => {
+              output += data.toString();
+            })
+            .stderr.on("data", (data) => {
+              output += data.toString();
+            });
+        });
+      })
+      .on("error", (err) => reject(err))
+      .connect({
+        host: h,
+        port: 22,
+        username: JNEXTPLAN_USER,
+        password: JNEXTPLAN_PASSWORD,
+        readyTimeout: 15000,
+        connectTimeout: 15000,
+      });
+  });
+}
+
 app.post("/api/used-space", async (req, res) => {
   const host = req.body?.host;
   try {
@@ -318,6 +406,27 @@ app.post("/api/jnext-plan", async (req, res) => {
     res.status(500).json({
       error: err.message || "Failed to fetch JNext plan info",
       jnextPlanLine: null,
+    });
+  }
+});
+
+/** Body: { host, toDate } — toDate is LD+1 as MM/DD/YYYY (client uses local “today” + 1 day). */
+app.post("/api/run-jnext", async (req, res) => {
+  const host = req.body?.host;
+  const toDate = req.body?.toDate;
+  try {
+    const result = await runJnextPlanOnHost(host, toDate);
+    console.log(
+      `[${String(host || "").trim()}] run-jnext to=${result.toDate} exit=${result.exitCode}`
+    );
+    res.json(result);
+  } catch (err) {
+    console.error(`[${host}] run-jnext`, err.message);
+    res.status(500).json({
+      error: err.message || "Failed to run JnextPlan",
+      exitCode: null,
+      output: null,
+      toDate: null,
     });
   }
 });
@@ -411,16 +520,42 @@ function normalizeVappForJenkins(vappId) {
 /**
  * @param {"cleanup"|"fullBounce"} profileName
  */
-function getJenkinsProfile(profileName) {
+/**
+ * @param {"cleanup"|"fullBounce"} profileName
+ * @param {{ user: string, password: string } | null} interactiveCreds - Full bounce only: browser-supplied Jenkins login (password used as Basic auth secret, same as API token).
+ */
+function getJenkinsProfile(profileName, interactiveCreds = null) {
   const p = String(profileName || "cleanup")
     .toLowerCase()
     .replace(/_/g, "");
   if (p === "fullbounce") {
     const base = JENKINS_FULL_BOUNCE_URL.replace(/\/$/, "");
-    const token = JENKINS_FULL_BOUNCE_TOKEN || JENKINS_TOKEN;
-    if (!base || !JENKINS_USER || !token) {
+    if (!base) {
       throw new Error(
-        "Full bounce Jenkins not configured. Set JENKINS_FULL_BOUNCE_URL, JENKINS_USER, and JENKINS_FULL_BOUNCE_TOKEN (or JENKINS_TOKEN) in .env"
+        "Full bounce Jenkins not configured. Set JENKINS_FULL_BOUNCE_URL in .env"
+      );
+    }
+    const ic = interactiveCreds || null;
+    if (
+      ic &&
+      ic.user != null &&
+      String(ic.user).trim() !== "" &&
+      ic.password != null &&
+      String(ic.password) !== ""
+    ) {
+      return {
+        key: "fullBounce",
+        base,
+        job: JENKINS_FULL_BOUNCE_JOB,
+        context: JENKINS_FULL_BOUNCE_CONTEXT,
+        user: String(ic.user).trim(),
+        token: String(ic.password),
+      };
+    }
+    const token = JENKINS_FULL_BOUNCE_TOKEN || JENKINS_TOKEN;
+    if (!JENKINS_USER || !token) {
+      throw new Error(
+        "Full bounce: open the Full bounce page and sign in with Jenkins username and password, or set JENKINS_USER and JENKINS_FULL_BOUNCE_TOKEN (or JENKINS_TOKEN) in .env for server-side auth."
       );
     }
     return {
@@ -444,6 +579,20 @@ function getJenkinsProfile(profileName) {
     user: JENKINS_USER,
     token: JENKINS_TOKEN,
   };
+}
+
+/** Resolve Jenkins cfg for HTTP handlers; Full bounce polls pass X-Full-Bounce-Username / X-Full-Bounce-Password. */
+function jenkinsCfgFromRequest(req) {
+  const profileRaw = req.query.profile != null ? req.query.profile : "cleanup";
+  const p = String(profileRaw).toLowerCase().replace(/_/g, "");
+  if (p === "fullbounce") {
+    const u = req.get("x-full-bounce-username");
+    const pw = req.get("x-full-bounce-password");
+    if (u && pw) {
+      return getJenkinsProfile("fullBounce", { user: u, password: pw });
+    }
+  }
+  return getJenkinsProfile(profileRaw);
 }
 
 function jobUrlParts(cfg) {
@@ -485,7 +634,7 @@ function jenkinsFetchCfg(cfg, url, options = {}) {
     ...options,
     headers: {
       Authorization: authHeader,
-      "User-Agent": "EnvSync-Jenkins/1.0",
+      "User-Agent": "EnvTracker-Jenkins/1.0",
       ...options.headers,
     },
   });
@@ -556,7 +705,7 @@ function jenkinsFetch(url, options = {}) {
     ...options,
     headers: {
       Authorization: jenkinsAuthHeader(),
-      "User-Agent": "EnvSync-Jenkins/1.0",
+      "User-Agent": "EnvTracker-Jenkins/1.0",
       ...options.headers,
     },
   });
@@ -567,10 +716,15 @@ async function fetchLastBuildNumber() {
   return fetchLastBuildNumberForProfile("cleanup");
 }
 
-async function fetchLastBuildNumberForProfile(profileName) {
+async function fetchLastBuildNumberForProfile(profileName, interactiveCreds = null) {
   let cfg;
   try {
-    cfg = getJenkinsProfile(profileName);
+    const p = String(profileName || "cleanup").toLowerCase().replace(/_/g, "");
+    if (p === "fullbounce") {
+      cfg = getJenkinsProfile("fullBounce", interactiveCreds);
+    } else {
+      cfg = getJenkinsProfile(profileName);
+    }
   } catch (e) {
     return null;
   }
@@ -641,7 +795,7 @@ async function triggerJenkinsEnvCleanup(envNumber) {
   const commonHeaders = {
     Authorization: authHeader,
     "Content-Type": "application/x-www-form-urlencoded",
-    "User-Agent": "EnvSync-Jenkins/1.0",
+    "User-Agent": "EnvTracker-Jenkins/1.0",
     ...crumbHeaders,
   };
 
@@ -728,13 +882,13 @@ function buildFullBounceParameterJson(envStr) {
   };
 }
 
-async function triggerJenkinsFullBounce(envVappValue) {
+async function triggerJenkinsFullBounce(envVappValue, interactiveCreds = null) {
   const envStr = String(envVappValue == null ? "" : envVappValue).trim();
   if (!envStr) {
     throw new Error("ENV (vApp) value is empty — check vApp ID on this row.");
   }
 
-  const cfg = getJenkinsProfile("fullBounce");
+  const cfg = getJenkinsProfile("fullBounce", interactiveCreds);
   const urls = jobUrlParts(cfg);
   const buildUrl = urls.buildWithParameters();
   const authHeader =
@@ -743,7 +897,7 @@ async function triggerJenkinsFullBounce(envVappValue) {
   const commonHeaders = {
     Authorization: authHeader,
     "Content-Type": "application/x-www-form-urlencoded",
-    "User-Agent": "EnvSync-Jenkins/1.0",
+    "User-Agent": "EnvTracker-Jenkins/1.0",
     ...crumbHeaders,
   };
 
@@ -818,7 +972,9 @@ async function triggerJenkinsFullBounce(envVappValue) {
   const text = await response.text();
   let detail = text.replace(/\s+/g, " ").trim().slice(0, 500);
   if (status === 401 || status === 403) {
-    detail = (detail || "Forbidden") + " — Check JENKINS_USER / JENKINS_FULL_BOUNCE_TOKEN and job name.";
+    detail =
+      (detail || "Forbidden") +
+      " — Check Jenkins username/password (Full bounce page) or JENKINS_USER / token in .env, and job name.";
   }
   throw new Error(`Jenkins returned ${status}${detail ? ": " + detail : ""}`);
 }
@@ -863,6 +1019,8 @@ app.post("/api/clean-space", async (req, res) => {
 
 app.post("/api/full-bounce", async (req, res) => {
   const vappRaw = req.body?.vappId ?? req.body?.vapp_id;
+  const jenkinsUsername = req.body?.jenkinsUsername ?? req.body?.username;
+  const jenkinsPassword = req.body?.jenkinsPassword ?? req.body?.password;
   try {
     const envVal = normalizeVappForJenkins(vappRaw);
     if (!envVal) {
@@ -871,13 +1029,27 @@ app.post("/api/full-bounce", async (req, res) => {
           "Missing or invalid vApp ID. Use a value like VAPP_148 or any text containing the numeric id (e.g. vapp-148).",
       });
     }
-    let previousBuildNumber = await fetchLastBuildNumberForProfile("fullBounce");
+    if (
+      jenkinsUsername == null ||
+      String(jenkinsUsername).trim() === "" ||
+      jenkinsPassword == null ||
+      String(jenkinsPassword) === ""
+    ) {
+      return res.status(400).json({
+        error: "jenkinsUsername and jenkinsPassword are required (use the Full bounce page).",
+      });
+    }
+    const creds = {
+      user: String(jenkinsUsername).trim(),
+      password: String(jenkinsPassword),
+    };
+    let previousBuildNumber = await fetchLastBuildNumberForProfile("fullBounce", creds);
     if (previousBuildNumber == null) {
       await new Promise((r) => setTimeout(r, 400));
-      previousBuildNumber = await fetchLastBuildNumberForProfile("fullBounce");
+      previousBuildNumber = await fetchLastBuildNumberForProfile("fullBounce", creds);
     }
     const triggeredAtMs = Date.now();
-    const result = await triggerJenkinsFullBounce(envVal);
+    const result = await triggerJenkinsFullBounce(envVal, creds);
     res.json({
       ok: true,
       env: envVal,
@@ -900,7 +1072,7 @@ app.get("/api/jenkins/queue", async (req, res) => {
   const queueUrl = req.query.url;
   let cfg;
   try {
-    cfg = getJenkinsProfile(req.query.profile);
+    cfg = jenkinsCfgFromRequest(req);
   } catch (e) {
     return res.status(503).json({ error: e.message });
   }
@@ -947,7 +1119,7 @@ app.get("/api/jenkins/queue", async (req, res) => {
 app.get("/api/jenkins/last-build", async (req, res) => {
   let cfg;
   try {
-    cfg = getJenkinsProfile(req.query.profile);
+    cfg = jenkinsCfgFromRequest(req);
   } catch (e) {
     return res.status(503).json({ error: e.message });
   }
@@ -981,7 +1153,7 @@ app.get("/api/jenkins/build-status", async (req, res) => {
   const num = req.query.number;
   let cfg;
   try {
-    cfg = getJenkinsProfile(req.query.profile);
+    cfg = jenkinsCfgFromRequest(req);
   } catch (e) {
     return res.status(503).json({ error: e.message });
   }
@@ -1017,7 +1189,7 @@ app.get("/api/jenkins/console-verify", async (req, res) => {
   const num = req.query.number;
   let cfg;
   try {
-    cfg = getJenkinsProfile(req.query.profile);
+    cfg = jenkinsCfgFromRequest(req);
   } catch (e) {
     return res.status(503).json({ error: e.message });
   }
@@ -1054,7 +1226,7 @@ app.get("/api/jenkins/console-summary", async (req, res) => {
   const num = req.query.number;
   let cfg;
   try {
-    cfg = getJenkinsProfile(req.query.profile);
+    cfg = jenkinsCfgFromRequest(req);
   } catch (e) {
     return res.status(503).json({ error: e.message });
   }
@@ -1091,7 +1263,7 @@ app.get("/api/jenkins/console-summary", async (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`EnvSync server at http://localhost:${PORT}`);
+  console.log(`EnvTracker server at http://localhost:${PORT}`);
   if (!SSH_USER || !SSH_PASSWORD) {
     console.warn("Warning: SSH_USER or SSH_PASSWORD not set. Create .env from .env.example");
   }

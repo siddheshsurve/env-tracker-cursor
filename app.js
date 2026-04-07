@@ -1,5 +1,5 @@
 /**
- * EnvSync Dashboard – Testing environments list
+ * EnvTracker – Testing environments list
  * Columns: Environment, Sprint, vApp ID, Logical name, Env owner (drag headers to reorder).
  * Replace ENVIRONMENTS with your API/data source when ready.
  */
@@ -15,13 +15,15 @@ const COLUMNS = {
   usedSpace: { label: "Used Space", key: "usedSpace" },
   cleanSpace: { label: "Clean Space", key: "cleanSpace" },
   fullBounce: { label: "Full Bounce", key: "fullBounce" },
+  runGsd: { label: "Run GSD", key: "runGsd" },
   jnextDate: { label: "JNext Date", key: "jnextDate", className: "cell-jnext" },
-  runJnext: { label: "Run JNext", key: "runJnext" },
+  runJnext: { label: "Run JNext", key: "runJnext", className: "cell-run-jnext" },
+  deployHf: { label: "Deploy HF", key: "deployHf" },
   upgradedPackage: { label: "Upgraded Package", key: "upgradedPackage", className: "cell-vapp" },
   logicalDate: { label: "Logical Date", key: "logicalDate" },
 };
 
-const DEFAULT_COLUMN_ORDER = ["envName", "sprint", "vappId", "dbHost", "anmConnectivity", "logicalName", "owner", "usedSpace", "cleanSpace", "fullBounce", "jnextDate", "runJnext", "upgradedPackage", "logicalDate"];
+const DEFAULT_COLUMN_ORDER = ["envName", "sprint", "vappId", "dbHost", "anmConnectivity", "logicalName", "owner", "usedSpace", "cleanSpace", "fullBounce", "runGsd", "jnextDate", "runJnext", "deployHf", "upgradedPackage", "logicalDate"];
 const STORAGE_KEY = "envsync-column-order";
 const STORAGE_KEY_ENVS = "envsync-environments";
 
@@ -50,12 +52,12 @@ const DAEMON_LIST = [
 ];
 
 const DEFAULT_ENVIRONMENTS = [
-  { envName: "xk9m-2841", logicalName: "env-prod-7f2a", sprint: "Sprint 41", vappId: "vapp-9c3e-b1d8", dbHost: "10.204.88.112", anmConnectivity: "", owner: "Jordan Lee", usedSpace: "128 GB", cleanSpace: "", fullBounce: "", jnextDate: "", runJnext: "", upgradedPackage: "", logicalDate: "2025-02-15" },
-  { envName: "qp2w-7193", logicalName: "env-staging-x4k9", sprint: "Sprint 38", vappId: "vapp-2a7f-e5c0", dbHost: "db-02.internal.net", anmConnectivity: "", owner: "Sam Rivera", usedSpace: "64 GB", cleanSpace: "", fullBounce: "", jnextDate: "", runJnext: "", upgradedPackage: "", logicalDate: "2025-01-20" },
-  { envName: "bn4v-5630", logicalName: "env-qa-m8n2", sprint: "Sprint 42", vappId: "vapp-1d9a-4b6e", dbHost: "192.168.33.77", anmConnectivity: "", owner: "Alex Kim", usedSpace: "256 GB", cleanSpace: "", fullBounce: "", jnextDate: "", runJnext: "", upgradedPackage: "", logicalDate: "2025-02-01" },
-  { envName: "ty8r-1046", logicalName: "env-dev-p3w1", sprint: "Sprint 39", vappId: "vapp-7e2c-8f4a", dbHost: "mysql-svc-05.cluster", anmConnectivity: "", owner: "Morgan Tate", usedSpace: "32 GB", cleanSpace: "", fullBounce: "", jnextDate: "", runJnext: "", upgradedPackage: "", logicalDate: "2025-01-10" },
-  { envName: "hj6s-8925", logicalName: "env-test-q9k4", sprint: "Sprint 41", vappId: "vapp-5b0d-3c7f", dbHost: "pg-primary.region-a", anmConnectivity: "", owner: "Riley Chen", usedSpace: "96 GB", cleanSpace: "", fullBounce: "", jnextDate: "", runJnext: "", upgradedPackage: "", logicalDate: "2025-02-10" },
-  { envName: "wc3p-4178", logicalName: "env-perf-n2m8", sprint: "Sprint 40", vappId: "vapp-8f1a-6e9b", dbHost: "10.55.12.203", anmConnectivity: "", owner: "Casey Drew", usedSpace: "512 GB", cleanSpace: "", fullBounce: "", jnextDate: "", runJnext: "", upgradedPackage: "", logicalDate: "2025-02-20" },
+  { envName: "xk9m-2841", logicalName: "env-prod-7f2a", sprint: "Sprint 41", vappId: "vapp-9c3e-b1d8", dbHost: "10.204.88.112", anmConnectivity: "", owner: "Jordan Lee", usedSpace: "128 GB", cleanSpace: "", fullBounce: "", runGsd: "", jnextDate: "", runJnext: "", deployHf: "", upgradedPackage: "", logicalDate: "2025-02-15" },
+  { envName: "qp2w-7193", logicalName: "env-staging-x4k9", sprint: "Sprint 38", vappId: "vapp-2a7f-e5c0", dbHost: "db-02.internal.net", anmConnectivity: "", owner: "Sam Rivera", usedSpace: "64 GB", cleanSpace: "", fullBounce: "", runGsd: "", jnextDate: "", runJnext: "", deployHf: "", upgradedPackage: "", logicalDate: "2025-01-20" },
+  { envName: "bn4v-5630", logicalName: "env-qa-m8n2", sprint: "Sprint 42", vappId: "vapp-1d9a-4b6e", dbHost: "192.168.33.77", anmConnectivity: "", owner: "Alex Kim", usedSpace: "256 GB", cleanSpace: "", fullBounce: "", runGsd: "", jnextDate: "", runJnext: "", deployHf: "", upgradedPackage: "", logicalDate: "2025-02-01" },
+  { envName: "ty8r-1046", logicalName: "env-dev-p3w1", sprint: "Sprint 39", vappId: "vapp-7e2c-8f4a", dbHost: "mysql-svc-05.cluster", anmConnectivity: "", owner: "Morgan Tate", usedSpace: "32 GB", cleanSpace: "", fullBounce: "", runGsd: "", jnextDate: "", runJnext: "", deployHf: "", upgradedPackage: "", logicalDate: "2025-01-10" },
+  { envName: "hj6s-8925", logicalName: "env-test-q9k4", sprint: "Sprint 41", vappId: "vapp-5b0d-3c7f", dbHost: "pg-primary.region-a", anmConnectivity: "", owner: "Riley Chen", usedSpace: "96 GB", cleanSpace: "", fullBounce: "", runGsd: "", jnextDate: "", runJnext: "", deployHf: "", upgradedPackage: "", logicalDate: "2025-02-10" },
+  { envName: "wc3p-4178", logicalName: "env-perf-n2m8", sprint: "Sprint 40", vappId: "vapp-8f1a-6e9b", dbHost: "10.55.12.203", anmConnectivity: "", owner: "Casey Drew", usedSpace: "512 GB", cleanSpace: "", fullBounce: "", runGsd: "", jnextDate: "", runJnext: "", deployHf: "", upgradedPackage: "", logicalDate: "2025-02-20" },
 ];
 
 function generateId() {
@@ -77,8 +79,10 @@ function loadEnvs() {
           if (e.used_space !== undefined && e.used_space !== null && env.usedSpace === undefined) env.usedSpace = e.used_space;
           if (e.clean_space !== undefined && e.clean_space !== null && env.cleanSpace === undefined) env.cleanSpace = e.clean_space;
           if (e.full_bounce !== undefined && e.full_bounce !== null && env.fullBounce === undefined) env.fullBounce = e.full_bounce;
+          if (e.run_gsd !== undefined && e.run_gsd !== null && env.runGsd === undefined) env.runGsd = e.run_gsd;
           if (e.jnext_date !== undefined && e.jnext_date !== null && env.jnextDate === undefined) env.jnextDate = e.jnext_date;
           if (e.run_jnext !== undefined && e.run_jnext !== null && env.runJnext === undefined) env.runJnext = e.run_jnext;
+          if (e.deploy_hf !== undefined && e.deploy_hf !== null && env.deployHf === undefined) env.deployHf = e.deploy_hf;
           if (e.upgraded_package !== undefined && e.upgraded_package !== null && env.upgradedPackage === undefined) env.upgradedPackage = e.upgraded_package;
           if (e.logical_date !== undefined && e.logical_date !== null && env.logicalDate === undefined) env.logicalDate = e.logical_date;
           // Ensure every column key exists so new fields display
@@ -130,16 +134,23 @@ function loadColumnOrder() {
       const valid = parsed.filter((id) => COLUMNS[id]);
       // Merge in any columns that exist in COLUMNS but are missing from saved order (e.g. newly added dbHost)
       const merged = [...valid];
-      const missing = allColumnIds.filter((id) => !merged.includes(id));
+      let missing = allColumnIds.filter((id) => !merged.includes(id));
       if (missing.includes("fullBounce") && merged.includes("cleanSpace")) {
         const ci = merged.indexOf("cleanSpace");
         merged.splice(ci + 1, 0, "fullBounce");
-        missing
-          .filter((id) => id !== "fullBounce")
-          .forEach((id) => merged.push(id));
-      } else {
-        missing.forEach((id) => merged.push(id));
+        missing = allColumnIds.filter((id) => !merged.includes(id));
       }
+      if (missing.includes("runGsd") && merged.includes("fullBounce")) {
+        const fi = merged.indexOf("fullBounce");
+        merged.splice(fi + 1, 0, "runGsd");
+        missing = allColumnIds.filter((id) => !merged.includes(id));
+      }
+      if (missing.includes("deployHf") && merged.includes("runJnext")) {
+        const ri = merged.indexOf("runJnext");
+        merged.splice(ri + 1, 0, "deployHf");
+        missing = allColumnIds.filter((id) => !merged.includes(id));
+      }
+      missing.forEach((id) => merged.push(id));
       return merged.length ? merged : [...DEFAULT_COLUMN_ORDER];
     }
   } catch (_) {}
@@ -168,9 +179,13 @@ function getFilteredEnvs() {
       (env.usedSpace && String(env.usedSpace).toLowerCase().includes(q)) ||
       (env.cleanSpace && String(env.cleanSpace).toLowerCase().includes(q)) ||
       (env.fullBounce && String(env.fullBounce).toLowerCase().includes(q)) ||
+      (env.runGsd && String(env.runGsd).toLowerCase().includes(q)) ||
+      (env.run_gsd && String(env.run_gsd).toLowerCase().includes(q)) ||
       (env.jnextDate && String(env.jnextDate).toLowerCase().includes(q)) ||
       (env.jnext_date && String(env.jnext_date).toLowerCase().includes(q)) ||
       (env.runJnext && String(env.runJnext).toLowerCase().includes(q)) ||
+      (env.deployHf && String(env.deployHf).toLowerCase().includes(q)) ||
+      (env.deploy_hf && String(env.deploy_hf).toLowerCase().includes(q)) ||
       (env.upgradedPackage && String(env.upgradedPackage).toLowerCase().includes(q)) ||
       (env.logicalDate && String(env.logicalDate).toLowerCase().includes(q)) ||
       (env.owner && env.owner.toLowerCase().includes(q)) ||
@@ -216,6 +231,11 @@ function getEnvValue(env, colKey) {
     if (f !== undefined && f !== null && f !== "") return String(f);
     return val === undefined || val === null ? "" : String(val);
   }
+  if (colKey === "runGsd") {
+    const g = env.run_gsd;
+    if (g !== undefined && g !== null && g !== "") return String(g);
+    return val === undefined || val === null ? "" : String(val);
+  }
   if (colKey === "jnextDate") {
     const j = env.jnext_date;
     if (j !== undefined && j !== null && j !== "") return String(j);
@@ -224,6 +244,11 @@ function getEnvValue(env, colKey) {
   if (colKey === "runJnext") {
     const r = env.run_jnext;
     if (r !== undefined && r !== null && r !== "") return String(r);
+    return val === undefined || val === null ? "" : String(val);
+  }
+  if (colKey === "deployHf") {
+    const d = env.deploy_hf;
+    if (d !== undefined && d !== null && d !== "") return String(d);
     return val === undefined || val === null ? "" : String(val);
   }
   if (colKey === "upgradedPackage") {
@@ -323,7 +348,27 @@ function renderBody() {
           } else if (colId === "fullBounce") {
             const envId = escapeHtml(env.id || "");
             content =
-              '<button type="button" class="btn btn-secondary btn-full-bounce" data-env-id="' + envId + '" title="Full bounce action">Full bounce</button>';
+              '<button type="button" class="btn btn-secondary btn-full-bounce" data-env-id="' +
+              envId +
+              '" title="Open Full bounce page to sign in and run J-Boot-PMX">Full bounce</button>';
+          } else if (colId === "runGsd") {
+            const envId = escapeHtml(env.id || "");
+            content =
+              '<button type="button" class="btn btn-secondary btn-run-gsd" data-env-id="' +
+              envId +
+              '" title="Run GSD for this environment">Run GSD</button>';
+          } else if (colId === "runJnext") {
+            const envId = escapeHtml(env.id || "");
+            content =
+              '<button type="button" class="btn btn-secondary btn-run-jnext" data-env-id="' +
+              envId +
+              '" title="Runs JnextPlan -to (LD+1); LD = today on this PC (MM/DD/YYYY)">Run JNext</button>';
+          } else if (colId === "deployHf") {
+            const envId = escapeHtml(env.id || "");
+            content =
+              '<button type="button" class="btn btn-secondary btn-deploy-hf" data-env-id="' +
+              envId +
+              '" title="Deploy hotfix for this environment">Deploy HF</button>';
           } else {
             content = escapeHtml(val);
           }
@@ -341,6 +386,9 @@ function renderBody() {
   initDeleteButtons();
   initCleanSpaceButtons();
   initFullBounceButtons();
+  initRunGsdButtons();
+  initRunJnextButtons();
+  initDeployHfButtons();
 }
 
 /** Trailing digits from env name (illnqw8358 → 8358) — must match server logic. */
@@ -352,6 +400,45 @@ function getEnvironmentNumberFromName(envName) {
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/** Local calendar date MM/DD/YYYY (browser — same role as Windows `echo %date%` for “today”). */
+function getLocalDateMMDDYYYY(d = new Date()) {
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${pad(d.getMonth() + 1)}/${pad(d.getDate())}/${d.getFullYear()}`;
+}
+
+/** LD + 1 day → MM/DD/YYYY for `JnextPlan -to` (matches Python timedelta(days=1)). */
+function addOneDayMMDDYYYY(ld) {
+  const parts = String(ld).split("/");
+  if (parts.length !== 3) return null;
+  const mm = parseInt(parts[0], 10);
+  const dd = parseInt(parts[1], 10);
+  const yyyy = parseInt(parts[2], 10);
+  if (Number.isNaN(mm) || Number.isNaN(dd) || Number.isNaN(yyyy)) return null;
+  const dt = new Date(yyyy, mm - 1, dd);
+  dt.setDate(dt.getDate() + 1);
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${pad(dt.getMonth() + 1)}/${pad(dt.getDate())}/${dt.getFullYear()}`;
+}
+
+async function postRunJnext(host, toDate) {
+  let res;
+  try {
+    res = await fetch(API_BASE + "/api/run-jnext", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ host: host || "", toDate: toDate || "" }),
+    });
+  } catch (e) {
+    return Promise.reject(new Error("API unreachable. Start server with: npm start"));
+  }
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const msg = data.error && typeof data.error === "string" ? data.error : "Request failed";
+    return Promise.reject(new Error(msg));
+  }
+  return data;
 }
 
 /** vApp id → VAPP_NNN for J-Boot-PMX ENV (same rules as server). */
@@ -512,34 +599,6 @@ async function waitForCleanSpacePipeline(queueItemUrl, previousBuildNumber, trig
   return buildNum;
 }
 
-/**
- * J-Boot-PMX: report Jenkins result + last console line (any outcome).
- */
-async function waitForFullBouncePipeline(queueItemUrl, previousBuildNumber, triggeredAtMs, button) {
-  const { buildNum, jenkinsResult } = await waitForJenkinsJobPipeline(
-    queueItemUrl,
-    previousBuildNumber,
-    triggeredAtMs,
-    button,
-    "fullBounce",
-    { acceptAnyJenkinsResult: true }
-  );
-  const api = API_BASE || "";
-  const r = await fetch(
-    `${api}/api/jenkins/console-summary?number=${encodeURIComponent(buildNum)}&${jenkinsProfileQuery("fullBounce")}`
-  );
-  const s = await r.json();
-  if (!r.ok) throw new Error(s.error || "Console summary failed");
-  return {
-    buildNum,
-    jenkinsResult,
-    lastLine: s.lastLine || "",
-    lastFew: s.lastFew || "",
-    finishedSuccess: !!s.finishedSuccess,
-    finishedFailure: !!s.finishedFailure,
-  };
-}
-
 function initCleanSpaceButtons() {
   tbody.querySelectorAll(".btn-clean-space").forEach((btn) => {
     btn.addEventListener("click", async (e) => {
@@ -604,9 +663,107 @@ function initCleanSpaceButtons() {
 }
 
 /** Per-row Full bounce — J-Boot-PMX on ilcechr042 (see .env). */
+function initRunJnextButtons() {
+  tbody.querySelectorAll(".btn-run-jnext").forEach((btn) => {
+    btn.addEventListener("click", async (e) => {
+      const id = e.currentTarget.getAttribute("data-env-id");
+      if (!id) return;
+      const env = allEnvs.find((r) => r.id === id);
+      if (!env) return;
+      const host = (env.envName || "").trim();
+      if (!host) {
+        alert("Set an environment name (SSH host) for this row.");
+        return;
+      }
+      const ld = getLocalDateMMDDYYYY();
+      const toDate = addOneDayMMDDYYYY(ld);
+      if (!toDate) {
+        alert("Could not compute LD+1 from local date.");
+        return;
+      }
+      if (
+        !confirm(
+            "Run JnextPlan on host " +
+            host +
+            "?\n\n" +
+            "Local date (LD): " +
+            ld +
+            "\n" +
+            "Command: JnextPlan -to " +
+            toDate +
+            "\n\n" +
+            "Uses JNEXTPLAN credentials from the server .env (same as Check JNext date)."
+        )
+      ) {
+        return;
+      }
+      const b = e.currentTarget;
+      const prevText = b.textContent;
+      b.disabled = true;
+      b.textContent = "Running…";
+      try {
+        const data = await postRunJnext(host, toDate);
+        const exitCode = data.exitCode;
+        const out = typeof data.output === "string" ? data.output : "";
+        if (exitCode === 0) {
+          try {
+            const line = await fetchJnextPlanForHost(host);
+            env.jnextDate = line != null && line !== "" ? String(line) : "—";
+          } catch (re) {
+            console.error("Refresh JNext date after run:", re.message);
+          }
+        }
+        saveEnvs();
+        render();
+        setLastUpdated();
+        const maxLog = 3500;
+        const logTail = out.length > maxLog ? out.slice(0, maxLog) + "\n…" : out;
+        const head =
+          exitCode === 0
+            ? "JNextPlan to " + ld + " completed on " + host + ".\n\n"
+            : "JNextPlan to " + ld + " did not complete on " + host + " (exit " + exitCode + ").\n\n";
+        alert(head + (logTail ? "--- Output ---\n" + logTail : "(no output)"));
+      } catch (err) {
+        alert("Run JNext: " + (err.message || String(err)));
+      } finally {
+        b.disabled = false;
+        b.textContent = prevText;
+      }
+    });
+  });
+}
+
+/** Per-row Deploy HF — wire API / Jenkins in this handler when ready. */
+function initDeployHfButtons() {
+  tbody.querySelectorAll(".btn-deploy-hf").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      const id = e.currentTarget.getAttribute("data-env-id");
+      if (!id) return;
+      const env = allEnvs.find((r) => r.id === id);
+      if (!env) return;
+      const envName = getEnvValue(env, "envName");
+      console.log("[Deploy HF]", envName);
+    });
+  });
+}
+
+/** Per-row Run GSD — wire API / automation in initRunGsdButtons when ready. */
+function initRunGsdButtons() {
+  tbody.querySelectorAll(".btn-run-gsd").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      const id = e.currentTarget.getAttribute("data-env-id");
+      if (!id) return;
+      const env = allEnvs.find((r) => r.id === id);
+      if (!env) return;
+      const envName = getEnvValue(env, "envName");
+      console.log("[Run GSD]", envName);
+    });
+  });
+}
+
 function initFullBounceButtons() {
   tbody.querySelectorAll(".btn-full-bounce").forEach((btn) => {
-    btn.addEventListener("click", async (e) => {
+    btn.addEventListener("click", (e) => {
       const id = e.currentTarget.getAttribute("data-env-id");
       if (!id) return;
       const env = allEnvs.find((r) => r.id === id);
@@ -619,50 +776,7 @@ function initFullBounceButtons() {
         );
         return;
       }
-      if (
-        !confirm(
-          `Trigger Full bounce (J-Boot-PMX) for ENV=${envNorm}?\n\n` +
-            `Uses: ENV_TYPE=ST, Action=ReStart, ComponentType=FULL, Component=FULL, CleanLogs/CleanCache=ON, OnFailure=skip.\n\n` +
-            `The app will wait until the pipeline finishes and show the Jenkins result and last console line.`
-        )
-      ) {
-        return;
-      }
-      const b = e.currentTarget;
-      const prevText = b.textContent;
-      b.disabled = true;
-      b.textContent = "Queuing…";
-      try {
-        const res = await fetch((API_BASE || "") + "/api/full-bounce", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ vappId: vappRaw }),
-        });
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok) {
-          throw new Error(data.error || res.statusText || "Request failed");
-        }
-        b.textContent = data.queueItemUrl ? "Waiting in queue…" : "Finding build #…";
-        const out = await waitForFullBouncePipeline(
-          data.queueItemUrl || null,
-          data.previousBuildNumber,
-          data.triggeredAtMs,
-          b
-        );
-        alert(
-          `Full bounce finished (build #${out.buildNum}).\n\n` +
-            `Jenkins result: ${out.jenkinsResult}\n\n` +
-            `Last console line:\n${out.lastLine || "(none)"}\n\n` +
-            (out.finishedSuccess
-              ? "You can run Refresh All if needed."
-              : "Check Console Output in Jenkins for details.")
-        );
-      } catch (err) {
-        alert("Full bounce (Jenkins): " + (err.message || String(err)));
-      } finally {
-        b.disabled = false;
-        b.textContent = prevText;
-      }
+      window.location.href = "full-bounce.html?vappId=" + encodeURIComponent(vappRaw);
     });
   });
 }
@@ -1050,8 +1164,10 @@ addForm.addEventListener("submit", (e) => {
     usedSpace: "",
     cleanSpace: "",
     fullBounce: "",
+    runGsd: "",
     jnextDate,
     runJnext,
+    deployHf: "",
     upgradedPackage,
     logicalDate: "",
   });

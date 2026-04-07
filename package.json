@@ -1,7 +1,7 @@
 {
-  "name": "env-sync",
+  "name": "envtracker",
   "version": "1.0.0",
-  "description": "Testing environments dashboard with used space from Unix hosts",
+  "description": "EnvTracker – testing environments dashboard with used space from Unix hosts",
   "engines": {
     "node": ">=18"
   },
